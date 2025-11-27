@@ -2,14 +2,14 @@ import React, { useState, useEffect, useRef } from 'react';
 import { 
   Cloud, CloudRain, Sun, Wind, Droplets, Maximize, 
   CloudSnow, CloudLightning, Settings, Image as ImageIcon, X,
-  Bell, BellRing, Music, RotateCcw, Calendar, Radio, Play, Square, Volume2, Signal, Pause, Power, ExternalLink, AlertTriangle, RefreshCw, Layers, CheckCircle, MapPin, Search, Navigation, ArrowUp, ArrowDown, Gauge, ChevronDown, Moon, FileAudio, Smartphone
+  Bell, Radio, Play, Square, Volume2, Signal, Pause, Power, ExternalLink, AlertTriangle, RefreshCw, Layers, CheckCircle, MapPin, Search, Navigation, ArrowUp, ArrowDown, Gauge, ChevronDown, Moon, FileAudio, Calendar, RotateCcw
 } from 'lucide-react';
 
 // ==========================================
 // 1. CONSTANTES Y CONFIGURACIÓN
 // ==========================================
 
-// GALERÍA AMPLIADA (12 FOTOS) - Se mezclarán al inicio
+// GALERÍA AMPLIADA (12 FOTOS)
 const DEFAULT_IMAGES = [
   "https://images.unsplash.com/photo-1472214103451-9374bd1c798e?ixlib=rb-4.0.3&auto=format&fit=crop&w=1600&q=80",
   "https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?ixlib=rb-4.0.3&auto=format&fit=crop&w=1600&q=80",
@@ -34,15 +34,15 @@ const DEFAULT_ALARM_SOUNDS = [
   { name: "Agua Relajante", url: "https://actions.google.com/sounds/v1/relaxing/river_sounds.ogg" }
 ];
 
-// ESTACIONES POR DEFECTO (Actualizadas con tu nuevo link MP3)
+// ESTACIONES POR DEFECTO
+// CORREGIDO: Enlace MP3 y SIN forceExternal
 const INITIAL_STATIONS = [
   { 
     name: "Radio Popular", 
-    // NUEVO ENLACE MP3 DIRECTO
     url: "https://stream.mediasector.es/listen/radio_popular/radiopopular.mp3", 
     genre: "Herri Irratia Bilbao", 
     logo: "https://www.dropbox.com/scl/fi/ec32q7bvksi6owp2is41x/Radio-popular.jpg?rlkey=xg9feos4cechw0lkke4y972gq&st=6g7uulws&dl=1"
-    // forceExternal ELIMINADO para que suene dentro
+    // forceExternal ELIMINADO
   },
   { name: "Rock FM", url: "https://rockfm-cope-rrcast.flumotion.com/cope/rockfm-low.mp3", genre: "Rock Clásico", logo: "https://www.dropbox.com/scl/fi/v42r0mvbneeefwdj5ssiu/Rock-FM.jpg?rlkey=uotl9msutnuz7apy06y527s4c&st=lwbvq50m&dl=1" },
   { name: "Cadena 100", url: "https://cadena100-cope-rrcast.flumotion.com/cope/cadena100-low.mp3", genre: "La mejor variedad", logo: "https://www.dropbox.com/scl/fi/6gaia8ed1q30otf48zi46/Cadena-100.jpg?rlkey=vx4xpii74lz2ir0tg35f3ui5b&st=rwfpkhuj&dl=1" },
@@ -132,6 +132,7 @@ export default function App() {
   
   // SCALING STATE
   const [scale, setScale] = useState(1);
+  const [isPortrait, setIsPortrait] = useState(false);
 
   // Imágenes
   const [images, setImages] = useState(() => {
@@ -346,7 +347,6 @@ export default function App() {
           setStations(newStations);
         }
       } else {
-        // Fallback antiguo
         const links = xmlDoc.getElementsByTagName("link");
         const newLogos = {};
         for (let i = 0; i < links.length; i++) {
@@ -489,7 +489,6 @@ export default function App() {
     if (files && files.length > 0) {
       const newImageUrls = Array.from(files).map(file => URL.createObjectURL(file));
       setImages(newImageUrls);
-      setIsLocalImage(true);
       setCurrentImageIndex(0);
       setShowSettings(false);
     }
@@ -502,7 +501,7 @@ export default function App() {
   };
 
   useEffect(() => {
-    fetchStationsData(); // Carga inicial de radios
+    fetchStationsData(); 
     fetchBackgroundImages();
     fetchAlarmSounds();
     updateBrightness();
@@ -632,6 +631,7 @@ export default function App() {
     setCurrentStation(station);
     setRadioPlaying(true);
     radioRef.current.src = station.url;
+    radioRef.current.crossOrigin = "anonymous"; // INTENTO DE FIX CORS
     radioRef.current.volume = radioVolume;
     
     const playPromise = radioRef.current.play();
@@ -695,6 +695,17 @@ export default function App() {
       }
     }
   };
+
+  if (isPortrait) {
+    return (
+      <div className="min-h-screen bg-black text-white flex flex-col items-center justify-center p-8 text-center font-sans">
+        <RotateCcw size={64} className="mb-6 text-blue-500 animate-spin-slow" />
+        <h1 className="text-3xl font-bold mb-4">Modo Horizontal Requerido</h1>
+        <p className="text-xl text-zinc-400">Esta estación meteorológica está diseñada para verse en horizontal.</p>
+        <p className="text-lg text-zinc-500 mt-2">Por favor, gira tu tablet.</p>
+      </div>
+    );
+  }
 
   return (
     <div className="w-screen h-screen bg-black overflow-hidden flex items-center justify-center font-sans relative selection:bg-none">
@@ -807,55 +818,13 @@ export default function App() {
           </div>
         )}
 
-        {showAlarmModal && (
-          <div className="absolute inset-0 z-50 bg-black/80 flex items-center justify-center p-4">
-            <div className="bg-zinc-900 p-6 rounded-2xl w-full max-w-sm space-y-6 border border-zinc-700 shadow-2xl">
-              <div className="flex justify-between"><h2 className="text-xl font-bold">Alarma</h2><button onClick={() => setShowAlarmModal(false)}><X/></button></div>
-              <div className="flex justify-center"><input type="time" value={alarmTime} onChange={(e) => saveAlarmSettings(e.target.value, alarmEnabled, alarmType, alarmStationName, alarmSoundUrl)} className="bg-zinc-800 text-5xl p-4 rounded-xl text-center w-full"/></div>
-              
-              <div className="bg-zinc-800 p-1 rounded-xl flex gap-1">
-                  <button onClick={() => saveAlarmSettings(alarmTime, alarmEnabled, 'sound', alarmStationName, alarmSoundUrl)} className={`flex-1 py-2 rounded-lg flex justify-center gap-2 text-sm ${alarmType==='sound'?'bg-blue-600':'text-zinc-400'}`}><FileAudio size={16}/> Audio</button>
-                  <button onClick={() => saveAlarmSettings(alarmTime, alarmEnabled, 'radio', alarmStationName, alarmSoundUrl)} className={`flex-1 py-2 rounded-lg flex justify-center gap-2 text-sm ${alarmType==='radio'?'bg-green-600':'text-zinc-400'}`}><Radio size={16}/> Radio</button>
-              </div>
-
-              {alarmType === 'sound' && (
-                <div className="space-y-2">
-                  <div className="flex justify-between text-xs text-zinc-400 font-bold"><span>Sonido:</span> <button onClick={fetchAlarmSounds} className="text-blue-400 flex gap-1 items-center"><RefreshCw size={10}/> XML</button></div>
-                  <div className="flex gap-2">
-                      <div className="relative flex-grow">
-                          <select value={alarmSoundUrl} onChange={(e)=>saveAlarmSettings(alarmTime, alarmEnabled, 'sound', alarmStationName, e.target.value)} className="w-full bg-zinc-800 p-3 rounded-xl appearance-none border border-zinc-600 text-white font-medium pr-8 text-sm truncate focus:border-blue-500 outline-none">
-                              {customSounds.map((s,i)=><option key={i} value={s.url}>{s.name}</option>)}
-                          </select>
-                          <ChevronDown className="absolute right-3 top-3.5 text-zinc-500 pointer-events-none" size={16}/>
-                      </div>
-                      <button onClick={() => testSound(alarmSoundUrl)} className={`p-3 rounded-xl transition-colors ${isTestingSound?'bg-red-500 text-white shadow-lg animate-pulse':'bg-zinc-700 text-zinc-300 hover:bg-zinc-600'}`} title={isTestingSound ? "Parar prueba" : "Probar sonido"}>
-                          {isTestingSound ? <Square size={20} fill="currentColor"/> : <Play size={20} fill="currentColor"/>}
-                      </button>
-                  </div>
-                </div>
-              )}
-
-              {alarmType === 'radio' && (
-                <div className="space-y-2">
-                  <label className="text-xs text-zinc-400 font-bold">Emisora:</label>
-                  <div className="relative">
-                      <select value={alarmStationName} onChange={(e)=>saveAlarmSettings(alarmTime, alarmEnabled, 'radio', e.target.value, alarmSoundUrl)} className="w-full bg-zinc-800 p-3 rounded-xl appearance-none border border-zinc-600 text-white font-medium pr-8 text-sm focus:border-green-500 outline-none">
-                          {stations.map((s,i)=><option key={i} value={s.name}>{s.name}</option>)}
-                      </select>
-                      <ChevronDown className="absolute right-3 top-3.5 text-zinc-500 pointer-events-none" size={16}/>
-                  </div>
-                </div>
-              )}
-              
-              <button onClick={() => {saveAlarmSettings(alarmTime, !alarmEnabled, alarmType, alarmStationName, alarmSoundUrl); setShowAlarmModal(false);}} className={`w-full py-3 rounded-xl font-bold ${alarmEnabled ? 'bg-red-900/50 text-red-200 border border-red-500/50' : 'bg-green-600'}`}>{alarmEnabled ? 'DESACTIVAR' : 'ACTIVAR'}</button>
-            </div>
-          </div>
-        )}
-
+        {/* --- LAYOUT FIJO: NUEVA ESTRUCTURA (TODO A LA IZQUIERDA) --- */}
         <div className="relative z-10 flex flex-row h-full w-full p-8 pt-8 pb-2">
           
+          {/* COLUMNA IZQUIERDA (Reloj + Widgets apilados) */}
           <div className="w-5/12 flex flex-col justify-between mb-0 h-full">
             
+            {/* 1. Reloj (Arriba, posición original intacta) */}
             <div className="space-y-2">
               <div className="space-y-2 -mt-6">
                 <h1 className="text-[10rem] font-bold tracking-tighter leading-none whitespace-nowrap">{time.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })}</h1>
@@ -866,8 +835,10 @@ export default function App() {
               </div>
             </div>
 
+            {/* 2. Grupo de Widgets (Abajo, apilados: Radio -> Clima -> Pronóstico) */}
             <div className="flex flex-col space-y-4 justify-end mt-auto">
               
+              {/* Widget Radio (Aparece encima de Clima si está activo) */}
               {currentStation && (
                 <div className="w-full max-w-sm h-20">
                   <div className="bg-black/60 backdrop-blur-md p-3 rounded-2xl border border-white/10 flex items-center justify-between w-full h-full">
@@ -880,16 +851,18 @@ export default function App() {
                       </div>
                     </div>
                     
-                    {/* Vúmetro entre texto y botones */}
-                    <div className="flex items-end gap-1 h-8 mx-4" aria-hidden="true">
-                      {vizLevels.map((level, idx) => (
-                        <div 
-                          key={idx} 
-                          className="w-1.5 bg-green-400 rounded-t transition-all duration-150 ease-out" 
-                          style={{ height: `${level}%` }} 
-                        />
-                      ))}
-                    </div>
+                    {/* Vúmetro entre texto y botones (Solo renderiza si vizLevels está listo) */}
+                    {vizLevels && (
+                      <div className="flex items-end gap-1 h-8 mx-4" aria-hidden="true">
+                        {vizLevels.map((level, idx) => (
+                          <div 
+                            key={idx} 
+                            className="w-1.5 bg-green-400 rounded-t transition-all duration-150 ease-out" 
+                            style={{ height: `${level}%` }} 
+                          />
+                        ))}
+                      </div>
+                    )}
 
                     <div className="flex items-center space-x-2 pl-2">
                       {!radioError && !currentStation.forceExternal && <button onClick={() => toggleRadio(currentStation)} className="p-3 bg-white/10 rounded-full text-white">{radioPlaying ? <Pause size={20} fill="currentColor" /> : <Play size={20} fill="currentColor" />}</button>}
@@ -899,6 +872,7 @@ export default function App() {
                 </div>
               )}
 
+              {/* Widget Clima Actual (Encima de Pronóstico) */}
               <div className="bg-white/10 backdrop-blur-md p-4 rounded-3xl border border-white/10 shadow-xl w-full max-w-sm h-52 flex flex-col justify-center">
                 {loading ? <div className="h-full flex items-center justify-center"><p>Cargando...</p></div> : error ? <div className="h-full flex items-center justify-center text-red-300"><p>{error}</p></div> : (
                   <>
@@ -930,6 +904,7 @@ export default function App() {
                 )}
               </div>
 
+              {/* Widget Pronóstico (Abajo del todo) */}
               {!loading && weather && (
                 <div className="bg-black/40 backdrop-blur-md p-3 rounded-3xl border border-white/5 shadow-2xl w-full max-w-md h-40 flex flex-col">
                   <h3 className="text-[15px] font-bold uppercase text-gray-300 mb-1 border-b border-white/10 pb-2 flex-shrink-0">PRONÓSTICO 7 DÍAS PARA {locationName.toUpperCase()}</h3>
@@ -944,6 +919,7 @@ export default function App() {
             </div>
           </div>
 
+          {/* COLUMNA DERECHA (Vacía para ver la foto) */}
           <div className="w-7/12 h-full">
              {/* Espacio libre para la foto */}
           </div>
