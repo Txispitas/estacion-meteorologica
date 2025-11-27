@@ -1,0 +1,16 @@
+Dependencias de Node
+
+node_modules/
+
+Directorios de Construcción
+
+dist/
+
+Logs
+
+npm-debug.log
+.DS_Store
+
+Directorios de gh-pages y caché (CRUCIAL para solucionar el error de "adding files failed")
+
+.cache/
