@@ -8,8 +8,7 @@
     "dev": "vite",
     "build": "vite build",
     "lint": "eslint . --ext js,jsx --report-unused-disable-directives --max-warnings 0",
-    "preview": "vite preview",
-    "deploy": "npm run build && gh-pages -d dist -x '**/*.map'"
+    "preview": "vite preview"
   },
   "dependencies": {
     "lucide-react": "^0.300.0",
