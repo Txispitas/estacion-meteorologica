@@ -2,14 +2,13 @@ import React, { useState, useEffect, useRef } from 'react';
 import { 
   Cloud, CloudRain, Sun, Wind, Droplets, Maximize, 
   CloudSnow, CloudLightning, Settings, Image as ImageIcon, X,
-  Bell, Radio, Play, Square, Volume2, Signal, Pause, Power, ExternalLink, AlertTriangle, RefreshCw, Layers, CheckCircle, MapPin, Search, Navigation, ArrowUp, ArrowDown, Gauge, ChevronDown, Moon, FileAudio, Calendar, RotateCcw
+  Bell, Radio, Play, Square, Volume2, Signal, Pause, Power, ExternalLink, AlertTriangle, RefreshCw, Layers, CheckCircle, MapPin, Search, Navigation, ArrowUp, ArrowDown, Gauge, ChevronDown, Moon, FileAudio, Calendar, RotateCcw, StickyNote
 } from 'lucide-react';
 
 // ==========================================
 // 1. CONSTANTES Y CONFIGURACIÓN
 // ==========================================
 
-// GALERÍA AMPLIADA (12 FOTOS)
 const DEFAULT_IMAGES = [
   "https://images.unsplash.com/photo-1472214103451-9374bd1c798e?ixlib=rb-4.0.3&auto=format&fit=crop&w=1600&q=80",
   "https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?ixlib=rb-4.0.3&auto=format&fit=crop&w=1600&q=80",
@@ -34,19 +33,22 @@ const DEFAULT_ALARM_SOUNDS = [
   { name: "Agua Relajante", url: "https://actions.google.com/sounds/v1/relaxing/river_sounds.ogg" }
 ];
 
-// ESTACIONES POR DEFECTO
-// CORREGIDO: Enlace MP3 y SIN forceExternal
+// Configuraciones iniciales robustas (MP3 directo interno)
 const INITIAL_STATIONS = [
   { 
     name: "Radio Popular", 
     url: "https://stream.mediasector.es/listen/radio_popular/radiopopular.mp3", 
     genre: "Herri Irratia Bilbao", 
     logo: "https://www.dropbox.com/scl/fi/ec32q7bvksi6owp2is41x/Radio-popular.jpg?rlkey=xg9feos4cechw0lkke4y972gq&st=6g7uulws&dl=1"
-    // forceExternal ELIMINADO
   },
   { name: "Rock FM", url: "https://rockfm-cope-rrcast.flumotion.com/cope/rockfm-low.mp3", genre: "Rock Clásico", logo: "https://www.dropbox.com/scl/fi/v42r0mvbneeefwdj5ssiu/Rock-FM.jpg?rlkey=uotl9msutnuz7apy06y527s4c&st=lwbvq50m&dl=1" },
   { name: "Cadena 100", url: "https://cadena100-cope-rrcast.flumotion.com/cope/cadena100-low.mp3", genre: "La mejor variedad", logo: "https://www.dropbox.com/scl/fi/6gaia8ed1q30otf48zi46/Cadena-100.jpg?rlkey=vx4xpii74lz2ir0tg35f3ui5b&st=rwfpkhuj&dl=1" },
-  { name: "Kiss FM", url: "https://kissfm.kissfmradio.cires21.com/kissfm.mp3", genre: "Lo mejor de los 80 y 90", logo: "https://www.dropbox.com/scl/fi/nvlr5gtz1y7gm4frfahm2/Kiss-FM.jpg?rlkey=cd2bjgkn9yu9goo4xq50wniid&st=x60cunwo&dl=1" }
+  { 
+    name: "Kiss FM", 
+    url: "https://kissfm.kissfmradio.cires21.com/kissfm.mp3", 
+    genre: "Lo mejor de los 80 y 90", 
+    logo: "https://www.dropbox.com/scl/fi/nvlr5gtz1y7gm4frfahm2/Kiss-FM.jpg?rlkey=cd2bjgkn9yu9goo4xq50wniid&st=x60cunwo&dl=1"
+  }
 ];
 
 // ==========================================
@@ -147,8 +149,9 @@ export default function App() {
   const [showSettings, setShowSettings] = useState(false);
   const [showAlarmModal, setShowAlarmModal] = useState(false);
   const [showRadioModal, setShowRadioModal] = useState(false);
+  const [showNotesModal, setShowNotesModal] = useState(false);
   
-  // Clima
+  const [notes, setNotes] = useState(() => safeLocalStorage.getItem('userNotes') || "");
   const [weather, setWeather] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -157,7 +160,7 @@ export default function App() {
   const [alarmTime, setAlarmTime] = useState(() => safeLocalStorage.getItem('alarmTime') || "07:00");
   const [alarmEnabled, setAlarmEnabled] = useState(() => safeLocalStorage.getItem('alarmEnabled') === 'true');
   const [alarmType, setAlarmType] = useState(() => safeLocalStorage.getItem('alarmType') || 'sound');
-  const [alarmStationName, setAlarmStationName] = useState(() => safeLocalStorage.getItem('alarmStationName') || INITIAL_STATIONS[1].name);
+  const [alarmStationName, setAlarmStationName] = useState(() => safeLocalStorage.getItem('alarmStationName') || "Radio Popular");
   const [alarmSoundUrl, setAlarmSoundUrl] = useState(() => safeLocalStorage.getItem('alarmSoundUrl') || DEFAULT_ALARM_SOUNDS[0].url);
   const [isRinging, setIsRinging] = useState(false);
   const [isTestingSound, setIsTestingSound] = useState(false);
@@ -203,7 +206,7 @@ export default function App() {
   // --- EFECTO VÚMETRO ---
   useEffect(() => {
     let interval;
-    if (radioPlaying && !radioError) {
+    if (radioPlaying) {
       interval = setInterval(() => {
         setVizLevels([
           Math.floor(Math.random() * 80) + 20,
@@ -216,7 +219,7 @@ export default function App() {
       setVizLevels([10, 10, 10, 10]);
     }
     return () => clearInterval(interval);
-  }, [radioPlaying, radioError]);
+  }, [radioPlaying]);
 
   // --- LOGICA DE ESCALADO ---
   useEffect(() => {
@@ -233,26 +236,29 @@ export default function App() {
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
-  // --- LOGICA DE NEGOCIO ---
+  const handleNotesChange = (e) => {
+    const text = e.target.value;
+    setNotes(text);
+    safeLocalStorage.setItem('userNotes', text);
+  };
 
   const handleAutoDetectLocation = async () => {
       setIsSearching(true);
       try {
-        const response = await fetch('https://ipwho.is/');
+        const response = await fetch('https://get.geojs.io/v1/ip/geo.json');
         const data = await response.json();
-        if (data.success) {
-            const newCoords = { lat: data.latitude, lon: data.longitude };
-            const cityName = data.city || "Ubicación WiFi";
-            setCoords(newCoords);
-            setLocationName(cityName);
-            safeLocalStorage.setItem('locLat', newCoords.lat);
-            safeLocalStorage.setItem('locLon', newCoords.lon);
-            safeLocalStorage.setItem('locName', cityName);
-            setIsSearching(false);
-            setShowSettings(false);
-        } else {
-            throw new Error("Fallo IP");
-        }
+        
+        const newCoords = { lat: parseFloat(data.latitude), lon: parseFloat(data.longitude) };
+        const cityName = data.city || "Ubicación Red";
+        
+        setCoords(newCoords);
+        setLocationName(cityName);
+        safeLocalStorage.setItem('locLat', newCoords.lat);
+        safeLocalStorage.setItem('locLon', newCoords.lon);
+        safeLocalStorage.setItem('locName', cityName);
+        setIsSearching(false);
+        setShowSettings(false);
+
       } catch (err) {
           if (navigator.geolocation) {
               navigator.geolocation.getCurrentPosition(
@@ -273,6 +279,33 @@ export default function App() {
               alert("No se pudo detectar ubicación.");
               setIsSearching(false);
           }
+      }
+  };
+
+  const handleSearchLocation = async () => {
+      if (!searchQuery.trim()) return;
+      setIsSearching(true);
+      try {
+          const response = await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(searchQuery)}&count=1&language=es&format=json`);
+          const data = await response.json();
+          if (data.results && data.results.length > 0) {
+              const result = data.results[0];
+              const newCoords = { lat: result.latitude, lon: result.longitude };
+              setCoords(newCoords);
+              setLocationName(result.name);
+              safeLocalStorage.setItem('locLat', result.latitude);
+              safeLocalStorage.setItem('locLon', result.longitude);
+              safeLocalStorage.setItem('locName', result.name);
+              setSearchQuery(""); 
+              setShowSettings(false); 
+          } else {
+              alert("No se encontró ninguna ubicación con ese código o nombre.");
+          }
+      } catch (e) {
+          console.error("Error geocoding:", e);
+          alert("Error al buscar la ubicación.");
+      } finally {
+          setIsSearching(false);
       }
   };
 
@@ -319,7 +352,9 @@ export default function App() {
   const fetchStationsData = async () => {
     setIsUpdatingRadios(true);
     try {
-      const response = await fetch(`${convertDropboxUrl(RADIOS_XML_URL)}&t=${new Date().getTime()}`);
+      // Anti-caché
+      const response = await fetch(`${convertDropboxUrl(RADIOS_XML_URL)}&t=${new Date().getTime()}&r=${Math.random()}`);
+      
       if (!response.ok) throw new Error("Error XML Radios");
       const text = await response.text();
       const parser = new DOMParser();
@@ -346,15 +381,6 @@ export default function App() {
         if (newStations.length > 0) {
           setStations(newStations);
         }
-      } else {
-        const links = xmlDoc.getElementsByTagName("link");
-        const newLogos = {};
-        for (let i = 0; i < links.length; i++) {
-          const id = links[i].getAttribute("id") || links[i].getAttribute("name");
-          const url = links[i].textContent.trim();
-          if (id && url) newLogos[id] = url;
-        }
-        setStations(prev => prev.map(s => newLogos[s.name] ? { ...s, logo: newLogos[s.name] } : s));
       }
     } catch (err) {
       console.error("Error cargando radios XML:", err);
@@ -429,59 +455,6 @@ export default function App() {
       }
     }
     setShowSettings(false); 
-  };
-
-  const handleSearchLocation = async () => {
-      if (!searchQuery.trim()) return;
-      setIsSearching(true);
-      try {
-          const response = await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(searchQuery)}&count=1&language=es&format=json`);
-          const data = await response.json();
-          if (data.results && data.results.length > 0) {
-              const result = data.results[0];
-              const newCoords = { lat: result.latitude, lon: result.longitude };
-              setCoords(newCoords);
-              setLocationName(result.name);
-              safeLocalStorage.setItem('locLat', result.latitude);
-              safeLocalStorage.setItem('locLon', result.longitude);
-              safeLocalStorage.setItem('locName', result.name);
-              setSearchQuery(""); 
-              setShowSettings(false); 
-          } else {
-              alert("No se encontró ninguna ubicación con ese código o nombre.");
-          }
-      } catch (e) {
-          console.error("Error geocoding:", e);
-          alert("Error al buscar la ubicación.");
-      } finally {
-          setIsSearching(false);
-      }
-  };
-
-  const handleUseGPS = () => {
-      setIsSearching(true);
-      if (navigator.geolocation) {
-          navigator.geolocation.getCurrentPosition(
-              (pos) => {
-                  const newCoords = { lat: pos.coords.latitude, lon: pos.coords.longitude };
-                  setCoords(newCoords);
-                  setLocationName("Ubicación Actual");
-                  safeLocalStorage.setItem('locLat', newCoords.lat);
-                  safeLocalStorage.setItem('locLon', newCoords.lon);
-                  safeLocalStorage.setItem('locName', "Ubicación Actual");
-                  setIsSearching(false);
-                  setShowSettings(false);
-              },
-              (err) => {
-                  console.error(err);
-                  alert("No se pudo obtener la ubicación GPS.");
-                  setIsSearching(false);
-              }
-          );
-      } else {
-          alert("Tu navegador no soporta GPS.");
-          setIsSearching(false);
-      }
   };
   
   const handleImageUpload = (event) => {
@@ -591,7 +564,7 @@ export default function App() {
     safeLocalStorage.setItem('alarmSoundUrl', soundUrl);
   };
 
-  const toggleRadio = (station) => {
+  const toggleRadio = async (station) => {
     if (!radioRef.current) return;
     setRadioError(false);
 
@@ -630,13 +603,20 @@ export default function App() {
 
     setCurrentStation(station);
     setRadioPlaying(true);
-    radioRef.current.src = station.url;
-    radioRef.current.crossOrigin = "anonymous"; // INTENTO DE FIX CORS
-    radioRef.current.volume = radioVolume;
     
-    const playPromise = radioRef.current.play();
-    if (playPromise !== undefined) {
-      playPromise.then(() => console.log("Radio iniciada")).catch(error => console.error("Error radio:", error));
+    try {
+        radioRef.current.src = station.url;
+        radioRef.current.volume = radioVolume;
+        const playPromise = radioRef.current.play();
+        if (playPromise !== undefined) {
+            await playPromise;
+            console.log("Radio iniciada");
+        }
+    } catch (error) {
+        if (error.name !== 'AbortError') {
+            console.error("Error radio:", error);
+            // setRadioError(true); 
+        }
     }
   };
 
@@ -710,7 +690,7 @@ export default function App() {
   return (
     <div className="w-screen h-screen bg-black overflow-hidden flex items-center justify-center font-sans relative selection:bg-none">
       <audio ref={audioRef} preload="auto" onEnded={() => setIsTestingSound(false)} />
-      <audio ref={radioRef} preload="none" onError={() => setRadioError(true)} onPlaying={() => setRadioError(false)} />
+      <audio ref={radioRef} preload="none" onError={(e) => { console.error("Audio error:", e); setRadioError(true); }} onPlaying={() => setRadioError(false)} />
       
       <div 
         style={{ 
@@ -750,16 +730,26 @@ export default function App() {
             <button onClick={toggleManualBrightness} className={`p-2 rounded-full ${brightness < 50 ? 'bg-blue-600 text-white shadow-lg' : 'bg-black/50 hover:bg-black/70 backdrop-blur-sm'}`}>{brightness < 50 ? <Moon size={20} /> : <Sun size={20} />}</button>
             <button onClick={() => setShowRadioModal(true)} className={`p-2 rounded-full ${radioPlaying ? 'bg-blue-600 text-white shadow-lg' : 'bg-black/50 hover:bg-black/70 backdrop-blur-sm'}`}>{radioPlaying ? <Signal size={20} className="animate-pulse"/> : <Radio size={20} />}</button>
             <button onClick={() => setShowAlarmModal(true)} className={`flex items-center space-x-2 px-3 py-2 rounded-full ${alarmEnabled ? 'bg-yellow-500 text-black shadow-lg' : 'bg-black/50 hover:bg-black/70 backdrop-blur-sm'}`}>{alarmEnabled && <span>{alarmTime}</span>}<Bell size={20}/></button>
+            <button onClick={() => setShowNotesModal(true)} className="p-2 bg-black/50 hover:bg-black/70 rounded-full backdrop-blur-sm"><StickyNote size={20} /></button>
             <button onClick={() => setShowSettings(true)} className="p-2 bg-black/50 hover:bg-black/70 rounded-full backdrop-blur-sm"><Settings size={20} /></button>
             <button onClick={toggleFullscreen} className="ml-2 p-2 bg-black/50 hover:bg-black/70 rounded-full backdrop-blur-sm"><Maximize size={20} /></button>
         </div>
 
-        {/* Modales */}
+        {/* Modales - Z-INDEX 9999 PARA FORZAR VISIBILIDAD */}
         {showRadioModal && (
-          <div className="absolute inset-0 z-50 bg-black/80 flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/80 flex items-center justify-center p-4" style={{ zIndex: 9999 }}>
             <div className="bg-zinc-900 p-4 rounded-2xl w-full max-w-sm space-y-4 border border-zinc-700">
               <div className="flex justify-between"><h2 className="text-xl font-bold">Radio</h2><button onClick={() => setShowRadioModal(false)}><X/></button></div>
-              <div className="flex items-center justify-between mb-2"><button onClick={fetchStationsData} className="text-xs flex items-center gap-1 text-blue-400"><RefreshCw size={12}/> Actualizar</button></div>
+              <div className="flex items-center justify-between mb-2">
+                <button 
+                    onClick={fetchStationsData} 
+                    disabled={isUpdatingRadios} 
+                    className={`text-xs flex items-center gap-1 text-blue-400 ${isUpdatingRadios ? 'opacity-50' : 'hover:text-blue-300'}`}
+                >
+                    <RefreshCw size={12} className={isUpdatingRadios ? "animate-spin" : ""} /> 
+                    {isUpdatingRadios ? "Actualizando..." : "Actualizar desde Dropbox"}
+                </button>
+              </div>
               {radioError && <div className="text-xs text-amber-400 flex gap-2"><AlertTriangle size={14}/> Error de stream. Usa modo externo.</div>}
               <div className="space-y-2 max-h-60 overflow-y-auto">
                   {stations && stations.map((s, i) => (
@@ -780,7 +770,7 @@ export default function App() {
         )}
 
         {showSettings && (
-          <div className="absolute inset-0 z-50 bg-black/80 flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/80 flex items-center justify-center p-4" style={{ zIndex: 9999 }}>
             <div className="bg-zinc-900 p-4 rounded-2xl w-full max-w-sm space-y-4 border border-zinc-700 max-h-[90vh] overflow-y-auto">
               <div className="flex justify-between"><h2 className="text-xl font-bold">Ajustes</h2><button onClick={() => setShowSettings(false)}><X/></button></div>
               
@@ -800,7 +790,10 @@ export default function App() {
               <div className="space-y-2">
                   <label className="text-sm text-zinc-400 font-bold flex items-center space-x-2"><MapPin size={16}/> <span>Buscar Ubicación</span></label>
                   <div className="flex space-x-2"><input type="text" value={searchQuery} onChange={(e)=>setSearchQuery(e.target.value)} placeholder="Ciudad o CP" className="flex-1 bg-zinc-800 text-white p-3 rounded-xl border border-zinc-600"/><button onClick={handleSearchLocation} disabled={isSearching} className="bg-blue-600 hover:bg-blue-500 p-3 rounded-xl text-white disabled:opacity-50">{isSearching ? <RefreshCw size={20} className="animate-spin"/> : <Search size={20}/>}</button></div>
-                  <button onClick={handleAutoDetectLocation} className="text-xs text-blue-400 underline flex gap-1 items-center"><Navigation size={10}/> Usar ubicación auto (WiFi)</button>
+                  <button onClick={handleAutoDetectLocation} disabled={isSearching} className="text-xs text-blue-400 underline flex gap-1 items-center">
+                    {isSearching ? <RefreshCw size={10} className="animate-spin"/> : <Navigation size={10}/>}
+                    {isSearching ? "Localizando..." : "Usar ubicación auto (WiFi)"}
+                  </button>
               </div>
 
               <div className="space-y-2 pt-2 border-t border-zinc-700">
@@ -818,16 +811,76 @@ export default function App() {
           </div>
         )}
 
+        {showNotesModal && (
+          <div className="absolute inset-0 bg-black/80 flex items-center justify-center p-4" style={{ zIndex: 9999 }}>
+            <div className="bg-zinc-900 p-4 rounded-2xl w-full max-w-sm space-y-4 border border-zinc-700 h-[80vh] flex flex-col">
+              <div className="flex justify-between mb-2"><h2 className="text-xl font-bold flex items-center gap-2"><StickyNote size={20}/> Notas</h2><button onClick={() => setShowNotesModal(false)}><X/></button></div>
+              <textarea 
+                value={notes} 
+                onChange={handleNotesChange}
+                className="flex-1 w-full bg-zinc-800 p-4 rounded-xl text-white resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 text-lg leading-relaxed" 
+                placeholder="Escribe aquí tus notas..." 
+              />
+              <p className="text-xs text-zinc-500 mt-2 text-center">Se guarda automáticamente</p>
+            </div>
+          </div>
+        )}
+
+        {showAlarmModal && (
+          <div className="absolute inset-0 bg-black/80 flex items-center justify-center p-4" style={{ zIndex: 9999 }}>
+            <div className="bg-zinc-900 p-6 rounded-2xl w-full max-w-sm space-y-6 border border-zinc-700 shadow-2xl">
+              <div className="flex justify-between"><h2 className="text-xl font-bold">Alarma</h2><button onClick={() => setShowAlarmModal(false)}><X/></button></div>
+              <div className="flex justify-center"><input type="time" value={alarmTime} onChange={(e) => saveAlarmSettings(e.target.value, alarmEnabled, alarmType, alarmStationName, alarmSoundUrl)} className="bg-zinc-800 text-5xl p-4 rounded-xl text-center w-full"/></div>
+              
+              <div className="bg-zinc-800 p-1 rounded-xl flex gap-1">
+                  <button onClick={() => saveAlarmSettings(alarmTime, alarmEnabled, 'sound', alarmStationName, alarmSoundUrl)} className={`flex-1 py-2 rounded-lg flex justify-center gap-2 text-sm ${alarmType==='sound'?'bg-blue-600':'text-zinc-400'}`}><FileAudio size={16}/> Audio</button>
+                  <button onClick={() => saveAlarmSettings(alarmTime, alarmEnabled, 'radio', alarmStationName, alarmSoundUrl)} className={`flex-1 py-2 rounded-lg flex justify-center gap-2 text-sm ${alarmType==='radio'?'bg-green-600':'text-zinc-400'}`}><Radio size={16}/> Radio</button>
+              </div>
+
+              {alarmType === 'sound' && (
+                <div className="space-y-2">
+                  <div className="flex justify-between text-xs text-zinc-400 font-bold"><span>Sonido:</span> <button onClick={fetchAlarmSounds} className="text-blue-400 flex gap-1 items-center"><RefreshCw size={10}/> XML</button></div>
+                  <div className="flex gap-2">
+                      <div className="relative flex-grow">
+                          <select value={alarmSoundUrl} onChange={(e)=>saveAlarmSettings(alarmTime, alarmEnabled, 'sound', alarmStationName, e.target.value)} className="w-full bg-zinc-800 p-3 rounded-xl appearance-none border border-zinc-600 text-white font-medium pr-8 text-sm truncate focus:border-blue-500 outline-none">
+                              {customSounds.map((s,i)=><option key={i} value={s.url}>{s.name}</option>)}
+                          </select>
+                          <ChevronDown className="absolute right-3 top-3.5 text-zinc-500 pointer-events-none" size={16}/>
+                      </div>
+                      <button onClick={() => testSound(alarmSoundUrl)} className={`p-3 rounded-xl transition-colors ${isTestingSound?'bg-red-500 text-white shadow-lg animate-pulse':'bg-zinc-700 text-zinc-300 hover:bg-zinc-600'}`} title={isTestingSound ? "Parar prueba" : "Probar sonido"}>
+                          {isTestingSound ? <Square size={20} fill="currentColor"/> : <Play size={20} fill="currentColor"/>}
+                      </button>
+                  </div>
+                </div>
+              )}
+
+              {alarmType === 'radio' && (
+                <div className="space-y-2">
+                  <label className="text-xs text-zinc-400 font-bold">Emisora:</label>
+                  <div className="relative">
+                      <select value={alarmStationName} onChange={(e)=>saveAlarmSettings(alarmTime, alarmEnabled, 'radio', e.target.value, alarmSoundUrl)} className="w-full bg-zinc-800 p-3 rounded-xl appearance-none border border-zinc-600 text-white font-medium pr-8 text-sm focus:border-green-500 outline-none">
+                          {stations.map((s,i)=><option key={i} value={s.name}>{s.name}</option>)}
+                      </select>
+                      <ChevronDown className="absolute right-3 top-3.5 text-zinc-500 pointer-events-none" size={16}/>
+                  </div>
+                </div>
+              )}
+              
+              <button onClick={() => {saveAlarmSettings(alarmTime, !alarmEnabled, alarmType, alarmStationName, alarmSoundUrl); setShowAlarmModal(false);}} className={`w-full py-3 rounded-xl font-bold ${alarmEnabled ? 'bg-red-900/50 text-red-200 border border-red-500/50' : 'bg-green-600'}`}>{alarmEnabled ? 'DESACTIVAR' : 'ACTIVAR'}</button>
+            </div>
+          </div>
+        )}
+
         {/* --- LAYOUT FIJO: NUEVA ESTRUCTURA (TODO A LA IZQUIERDA) --- */}
-        <div className="relative z-10 flex flex-row h-full w-full p-8 pt-8 pb-2">
+        <div className="relative z-10 flex flex-row h-full w-full p-6 pt-6 pb-2">
           
           {/* COLUMNA IZQUIERDA (Reloj + Widgets apilados) */}
           <div className="w-5/12 flex flex-col justify-between mb-0 h-full">
             
-            {/* 1. Reloj (Arriba, posición original intacta) */}
+            {/* 1. Reloj (Arriba) */}
             <div className="space-y-2">
               <div className="space-y-2 -mt-6">
-                <h1 className="text-[10rem] font-bold tracking-tighter leading-none whitespace-nowrap">{time.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })}</h1>
+                <h1 className="text-[8rem] font-bold tracking-tighter leading-none whitespace-nowrap">{time.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })}</h1>
                 <div className="ml-2">
                   <p className="text-3xl font-light text-gray-200 capitalize">{time.toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' })}</p>
                   <p className="text-lg text-yellow-500/80 font-medium flex items-center space-x-2 mt-1"><Calendar size={16} /> <span>Semana {getWeekNumber(time)}</span></p>
@@ -836,7 +889,7 @@ export default function App() {
             </div>
 
             {/* 2. Grupo de Widgets (Abajo, apilados: Radio -> Clima -> Pronóstico) */}
-            <div className="flex flex-col space-y-4 justify-end mt-auto">
+            <div className="flex flex-col space-y-2 justify-end mt-auto">
               
               {/* Widget Radio (Aparece encima de Clima si está activo) */}
               {currentStation && (
@@ -851,7 +904,7 @@ export default function App() {
                       </div>
                     </div>
                     
-                    {/* Vúmetro entre texto y botones (Solo renderiza si vizLevels está listo) */}
+                    {/* Vúmetro entre texto y botones */}
                     {vizLevels && (
                       <div className="flex items-end gap-1 h-8 mx-4" aria-hidden="true">
                         {vizLevels.map((level, idx) => (
@@ -906,7 +959,7 @@ export default function App() {
 
               {/* Widget Pronóstico (Abajo del todo) */}
               {!loading && weather && (
-                <div className="bg-black/40 backdrop-blur-md p-3 rounded-3xl border border-white/5 shadow-2xl w-full max-w-md h-40 flex flex-col">
+                <div className="bg-black/40 backdrop-blur-md p-3 rounded-3xl border border-white/5 shadow-2xl w-full max-w-md h-36 flex flex-col box-border">
                   <h3 className="text-[15px] font-bold uppercase text-gray-300 mb-1 border-b border-white/10 pb-2 flex-shrink-0">PRONÓSTICO 7 DÍAS PARA {locationName.toUpperCase()}</h3>
                   <div className="flex overflow-x-auto pb-2 scrollbar-hide justify-between space-x-4 flex-grow items-center">
                     {weather.forecast.map((day, idx) => (
