@@ -297,10 +297,24 @@ export default function App() {
   const radioRef = useRef(null);
   const externalWindowRef = useRef(null);
 
-  // --- NUEVA FUNCIÓN PARA ELIMINAR FOTOS ROTAS ---
+  // --- FUNCIÓN MEJORADA: REEMPLAZA FOTOS ROTAS CON RESERVAS ---
   const handleImageError = (badUrl) => {
-    // console.warn("Eliminando imagen rota:", badUrl); // Opcional: para depurar
-    setImages((prevImages) => prevImages.filter((img) => img !== badUrl));
+    const currentSeason = getSeason();
+    const backupPool = SEASONAL_IMAGES[currentSeason]; // Usamos las fotos internas como reserva
+
+    setImages((prevImages) => {
+      // Intentamos encontrar una imagen del pool de reserva que no esté ya en uso
+      const replacement = backupPool.find(img => !prevImages.includes(img) && img !== badUrl);
+
+      if (replacement) {
+         // Si hay reemplazo, sustituimos la mala por la buena
+         // console.log("Reparando enlace roto:", badUrl, "->", replacement);
+         return prevImages.map(img => img === badUrl ? replacement : img);
+      } else {
+         // Si no quedan reservas (o ya se usan todas), simplemente borramos la mala
+         return prevImages.filter((img) => img !== badUrl);
+      }
+    });
   };
 
   // --- EFECTO VÚMETRO ---
