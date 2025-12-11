@@ -307,11 +307,8 @@ export default function App() {
       const replacement = backupPool.find(img => !prevImages.includes(img) && img !== badUrl);
 
       if (replacement) {
-         // Si hay reemplazo, sustituimos la mala por la buena
-         // console.log("Reparando enlace roto:", badUrl, "->", replacement);
          return prevImages.map(img => img === badUrl ? replacement : img);
       } else {
-         // Si no quedan reservas (o ya se usan todas), simplemente borramos la mala
          return prevImages.filter((img) => img !== badUrl);
       }
     });
@@ -809,7 +806,7 @@ export default function App() {
       <audio ref={audioRef} preload="auto" onEnded={() => setIsTestingSound(false)} />
       <audio ref={radioRef} preload="none" onError={(e) => { console.error("Audio error:", e); setRadioError(true); }} onPlaying={() => setRadioError(false)} />
       
-      {/* 1. GLOBAL BACKGROUND (Full Screen) */}
+      {/* 1. GLOBAL BACKGROUND (Full Screen) - PISO BAJO */}
       <div className="absolute inset-0 z-0">
           {images.map((img, index) => (
             <div key={index} className={`absolute inset-0 transition-opacity duration-1000 ${index === currentImageIndex ? 'opacity-100' : 'opacity-0'}`}>
@@ -817,37 +814,22 @@ export default function App() {
                 src={img} 
                 alt="" 
                 className="absolute inset-0 w-full h-full object-cover blur-lg opacity-40 scale-105" 
-                onError={() => handleImageError(img)} // Autolimpieza de imágenes rotas
+                onError={() => handleImageError(img)} 
               />
               <img 
                 src={img} 
                 alt="Fondo" 
                 className="absolute inset-0 w-full h-full object-cover z-10"
-                onError={() => handleImageError(img)} // Autolimpieza de imágenes rotas
+                onError={() => handleImageError(img)} 
               />
             </div>
           ))}
           <div className="absolute inset-0 z-20 bg-gradient-to-r from-black/90 via-black/50 to-transparent" />
       </div>
 
-      {/* 2. GLOBAL BRIGHTNESS OVERLAY (Full Screen) */}
-      <div className="absolute inset-0 bg-black pointer-events-none transition-opacity duration-1000 z-[60]" style={{ opacity: (100 - brightness) / 100 }} />
-
-      {/* 3. ALARM OVERLAY (Full Screen - fixed z-index) */}
-      {isRinging && (
-          <div className="fixed inset-0 z-[100] bg-red-600 flex flex-col items-center justify-center animate-pulse">
-            <div className="bg-black/90 p-12 rounded-3xl text-center border-4 border-white">
-              <h1 className="text-6xl font-bold mb-4">¡BUENOS DÍAS!</h1>
-              <p className="text-2xl text-gray-300 mb-8">
-                  {alarmType === 'radio' ? `Sonando: ${alarmStationName}` : 'Es hora de despertar'}
-              </p>
-              <button onClick={stopAlarm} className="px-12 py-6 bg-white text-black text-3xl font-bold rounded-full shadow-xl">DETENER</button>
-            </div>
-          </div>
-      )}
-
-      {/* 4. SCALED CONTAINER (Centered) */}
-      <div className="w-full h-full flex items-center justify-center relative z-10">
+      {/* 2. SCALED CONTENT (WIDGETS) - PISO BAJO */}
+      {/* Esta capa contiene los widgets que SÍ deben oscurecerse. Está debajo de la capa negra. */}
+      <div className="absolute inset-0 w-full h-full flex items-center justify-center z-10 pointer-events-none">
           <div 
             style={{ 
               width: '1280px', 
@@ -855,155 +837,9 @@ export default function App() {
               transform: `scale(${scale})`,
               transformOrigin: 'center center'
             }}
-            className="relative w-[1280px] h-[800px] flex-shrink-0 text-white"
+            className="relative w-[1280px] h-[800px] flex-shrink-0 text-white pointer-events-auto"
           >
-            
-            <div className="absolute top-0 right-0 p-4 z-50 flex items-center space-x-3 text-white w-full justify-end">
-                <button onClick={toggleManualBrightness} className={`p-2 rounded-full ${brightness < 50 ? 'bg-blue-600 text-white shadow-lg' : 'bg-black/50 hover:bg-black/70 backdrop-blur-sm'}`}>{brightness < 50 ? <Moon size={20} /> : <Sun size={20} />}</button>
-                <button onClick={() => setShowRadioModal(true)} className={`p-2 rounded-full ${radioPlaying ? 'bg-blue-600 text-white shadow-lg' : 'bg-black/50 hover:bg-black/70 backdrop-blur-sm'}`}>{radioPlaying ? <Signal size={20} className="animate-pulse"/> : <Radio size={20} />}</button>
-                <button onClick={() => setShowAlarmModal(true)} className={`flex items-center space-x-2 px-3 py-2 rounded-full ${alarmEnabled ? 'bg-yellow-500 text-black shadow-lg' : 'bg-black/50 hover:bg-black/70 backdrop-blur-sm'}`}>{alarmEnabled && <span>{alarmTime}</span>}<Bell size={20}/></button>
-                <button onClick={() => setShowNotesModal(true)} className="p-2 bg-black/50 hover:bg-black/70 rounded-full backdrop-blur-sm"><StickyNote size={20} /></button>
-                <button onClick={() => setShowSettings(true)} className="p-2 bg-black/50 hover:bg-black/70 rounded-full backdrop-blur-sm"><Settings size={20} /></button>
-                <button onClick={toggleFullscreen} className="ml-2 p-2 bg-black/50 hover:bg-black/70 rounded-full backdrop-blur-sm"><Maximize size={20} /></button>
-            </div>
-
-            {/* Modales - Z-INDEX 9999 PARA FORZAR VISIBILIDAD */}
-            {showRadioModal && (
-              <div className="absolute inset-0 bg-black/80 flex items-center justify-center p-4" style={{ zIndex: 9999 }}>
-                <div className="bg-zinc-900 p-4 rounded-2xl w-full max-w-sm space-y-4 border border-zinc-700">
-                  <div className="flex justify-between"><h2 className="text-xl font-bold">Radio</h2><button onClick={() => setShowRadioModal(false)}><X/></button></div>
-                  <div className="flex items-center justify-between mb-2">
-                    <button 
-                        onClick={fetchStationsData} 
-                        disabled={isUpdatingRadios} 
-                        className={`text-xs flex items-center gap-1 text-blue-400 ${isUpdatingRadios ? 'opacity-50' : 'hover:text-blue-300'}`}
-                    >
-                        <RefreshCw size={12} className={isUpdatingRadios ? "animate-spin" : ""} /> 
-                        {isUpdatingRadios ? "Actualizando..." : "Actualizar desde Dropbox"}
-                    </button>
-                  </div>
-                  {radioError && <div className="text-xs text-amber-400 flex gap-2"><AlertTriangle size={14}/> Error de stream. Usa modo externo.</div>}
-                  <div className="space-y-2 max-h-60 overflow-y-auto">
-                      {stations && stations.map((s, i) => (
-                        <button key={i} onClick={() => { toggleRadio(s); setShowRadioModal(false); }} className="w-full p-3 bg-zinc-800 rounded-xl flex items-center gap-3 hover:bg-zinc-700">
-                          <img src={s.logo} className="w-8 h-8 rounded bg-white/10 object-cover" alt=""/>
-                          <div className="text-left flex-1"><p className="font-bold text-sm">{s.name}</p></div>
-                          {s.forceExternal && <ExternalLink size={14} className="text-zinc-500"/>}
-                        </button>
-                      ))}
-                  </div>
-                  <div className="flex items-center gap-2 bg-zinc-800 p-2 rounded-xl">
-                      <Volume2 size={18} className="text-zinc-400"/>
-                      <input type="range" min="0" max="1" step="0.1" value={radioVolume} onChange={(e) => {setRadioVolume(parseFloat(e.target.value)); if(radioRef.current) radioRef.current.volume=parseFloat(e.target.value);}} className="w-full h-1 bg-zinc-600 rounded-lg cursor-pointer"/>
-                  </div>
-                  {(radioPlaying || radioError) && <button onClick={() => toggleRadio(null)} className="w-full py-3 bg-red-900/50 text-red-300 rounded-xl font-bold flex justify-center gap-2"><Square size={16} fill="currentColor"/> APAGAR</button>}
-                </div>
-              </div>
-            )}
-
-            {showSettings && (
-              <div className="absolute inset-0 bg-black/80 flex items-center justify-center p-4" style={{ zIndex: 9999 }}>
-                <div className="bg-zinc-900 p-4 rounded-2xl w-full max-w-sm space-y-4 border border-zinc-700 max-h-[90vh] overflow-y-auto">
-                  <div className="flex justify-between"><h2 className="text-xl font-bold">Ajustes</h2><button onClick={() => setShowSettings(false)}><X/></button></div>
-                  
-                  <div className="bg-zinc-800 p-3 rounded-xl space-y-3">
-                      <div className="flex justify-between items-center"><span className="text-sm font-bold flex gap-2"><Moon size={16} className="text-blue-400"/> Modo Noche</span>
-                      <button onClick={() => saveSchedSettings(!schedEnabled, schedStart, schedEnd, dayBright, nightBright)} className={`w-10 h-5 rounded-full relative ${schedEnabled ? 'bg-green-600' : 'bg-zinc-600'}`}><span className={`absolute top-1 w-3 h-3 bg-white rounded-full transition-all ${schedEnabled ? 'left-6' : 'left-1'}`} /></button></div>
-                      {schedEnabled && (
-                        <div className="grid grid-cols-2 gap-2 text-xs">
-                            <div><label>Inicio</label><input type="time" value={schedStart} onChange={(e)=>saveSchedSettings(true,e.target.value,schedEnd,dayBright,nightBright)} className="w-full bg-zinc-900 p-1 rounded"/></div>
-                            <div><label>Fin</label><input type="time" value={schedEnd} onChange={(e)=>saveSchedSettings(true,schedStart,e.target.value,dayBright,nightBright)} className="w-full bg-zinc-900 p-1 rounded"/></div>
-                            <div className="col-span-2 space-y-1"><div className="flex justify-between"><span>Día</span><span>{dayBright}%</span></div><input type="range" min="10" max="100" value={dayBright} onChange={(e)=>saveSchedSettings(true,schedStart,schedEnd,parseInt(e.target.value),nightBright)} className="w-full h-1 bg-zinc-600"/></div>
-                            <div className="col-span-2 space-y-1"><div className="flex justify-between"><span>Noche</span><span>{nightBright}%</span></div><input type="range" min="0" max="100" value={nightBright} onChange={(e)=>saveSchedSettings(true,schedStart,schedEnd,dayBright,parseInt(e.target.value))} className="w-full h-1 bg-zinc-600"/></div>
-                        </div>
-                      )}
-                  </div>
-
-                  <div className="space-y-2">
-                      <label className="text-sm text-zinc-400 font-bold flex items-center space-x-2"><MapPin size={16}/> <span>Buscar Ubicación</span></label>
-                      <div className="flex space-x-2"><input type="text" value={searchQuery} onChange={(e)=>setSearchQuery(e.target.value)} placeholder="Ciudad o CP" className="flex-1 bg-zinc-800 text-white p-3 rounded-xl border border-zinc-600"/><button onClick={handleSearchLocation} disabled={isSearching} className="bg-blue-600 hover:bg-blue-500 p-3 rounded-xl text-white disabled:opacity-50">{isSearching ? <RefreshCw size={20} className="animate-spin"/> : <Search size={20}/>}</button></div>
-                      <button onClick={handleAutoDetectLocation} disabled={isSearching} className="text-xs text-blue-400 underline flex gap-1 items-center">
-                        {isSearching ? <RefreshCw size={10} className="animate-spin"/> : <Navigation size={10}/>}
-                        {isSearching ? "Localizando..." : "Usar ubicación auto (WiFi)"}
-                      </button>
-                  </div>
-
-                  <div className="space-y-2 pt-2 border-t border-zinc-700">
-                      <button onClick={fetchBackgroundImages} disabled={isUpdatingImages} className={`w-full py-3 bg-zinc-800 hover:bg-zinc-700 rounded-xl flex items-center justify-center space-x-2 font-bold border border-zinc-600 ${isUpdatingImages ? 'opacity-70' : ''}`}><RefreshCw size={18} className={isUpdatingImages ? 'animate-spin' : ''} /> <span>{isUpdatingImages ? 'Actualizando...' : 'Recargar XML Fondos'}</span></button>
-                      {xmlStatusMsg && <div className={`text-xs text-center p-2 rounded-lg border ${xmlStatusMsg.includes("Error") ? 'bg-red-900/30 border-red-800 text-red-300' : 'bg-green-900/30 border-green-800 text-green-300'}`}>{xmlStatusMsg}</div>}
-                  </div>
-                  <button onClick={toggleImageSource} className={`w-full py-3 rounded-xl flex items-center justify-center space-x-2 font-bold transition-colors ${usingCustomImages ? 'bg-indigo-600 hover:bg-indigo-500 text-white' : 'bg-blue-600 hover:bg-blue-500 text-white'}`}>{usingCustomImages ? <><Layers size={18} /><span>Cambiar a Fotos Aleatorias</span></> : <><ImageIcon size={18} /><span>Usar Mis Fotos</span></>}</button>
-                  {usingCustomImages && <div className="flex items-center justify-center space-x-2 text-xs text-zinc-400"><CheckCircle size={12} className="text-green-500" /><span>{customImages.length} fotos cargadas.</span></div>}
-                  
-                  <button onClick={() => fileInputRef.current?.click()} className="w-full py-3 bg-blue-600 rounded-xl flex items-center justify-center space-x-2 font-bold text-white"><ImageIcon size={18}/> <span>Subir Localmente</span></button>
-                  <input type="file" multiple accept="image/*" className="hidden" ref={fileInputRef} onChange={handleImageUpload}/>
-
-                  <button onClick={() => setShowSettings(false)} className="w-full py-3 mt-2 bg-green-600 hover:bg-green-500 rounded-xl text-white font-bold shadow-lg transition-transform active:scale-95">Aceptar</button>
-                </div>
-              </div>
-            )}
-
-            {showNotesModal && (
-              <div className="absolute inset-0 bg-black/80 flex items-center justify-center p-4" style={{ zIndex: 9999 }}>
-                <div className="bg-zinc-900 p-4 rounded-2xl w-full max-w-sm space-y-4 border border-zinc-700 h-[80vh] flex flex-col">
-                  <div className="flex justify-between mb-2"><h2 className="text-xl font-bold flex items-center gap-2"><StickyNote size={20}/> Notas</h2><button onClick={() => setShowNotesModal(false)}><X/></button></div>
-                  <textarea 
-                    value={notes} 
-                    onChange={handleNotesChange}
-                    className="flex-1 w-full bg-zinc-800 p-4 rounded-xl text-white resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 text-lg leading-relaxed" 
-                    placeholder="Escribe aquí tus notas..." 
-                  />
-                  <p className="text-xs text-zinc-500 mt-2 text-center">Se guarda automáticamente</p>
-                </div>
-              </div>
-            )}
-
-            {showAlarmModal && (
-              <div className="absolute inset-0 bg-black/80 flex items-center justify-center p-4" style={{ zIndex: 9999 }}>
-                <div className="bg-zinc-900 p-6 rounded-2xl w-full max-w-sm space-y-6 border border-zinc-700 shadow-2xl">
-                  <div className="flex justify-between"><h2 className="text-xl font-bold">Alarma</h2><button onClick={() => setShowAlarmModal(false)}><X/></button></div>
-                  <div className="flex justify-center"><input type="time" value={alarmTime} onChange={(e) => saveAlarmSettings(e.target.value, alarmEnabled, alarmType, alarmStationName, alarmSoundUrl)} className="bg-zinc-800 text-5xl p-4 rounded-xl text-center w-full"/></div>
-                  
-                  <div className="bg-zinc-800 p-1 rounded-xl flex gap-1">
-                      <button onClick={() => saveAlarmSettings(alarmTime, alarmEnabled, 'sound', alarmStationName, alarmSoundUrl)} className={`flex-1 py-2 rounded-lg flex justify-center gap-2 text-sm ${alarmType==='sound'?'bg-blue-600':'text-zinc-400'}`}><FileAudio size={16}/> Audio</button>
-                      <button onClick={() => saveAlarmSettings(alarmTime, alarmEnabled, 'radio', alarmStationName, alarmSoundUrl)} className={`flex-1 py-2 rounded-lg flex justify-center gap-2 text-sm ${alarmType==='radio'?'bg-green-600':'text-zinc-400'}`}><Radio size={16}/> Radio</button>
-                  </div>
-
-                  {alarmType === 'sound' && (
-                    <div className="space-y-2">
-                      <div className="flex justify-between text-xs text-zinc-400 font-bold"><span>Sonido:</span> <button onClick={fetchAlarmSounds} className="text-blue-400 flex gap-1 items-center"><RefreshCw size={10}/> XML</button></div>
-                      <div className="flex gap-2">
-                          <div className="relative flex-grow">
-                              <select value={alarmSoundUrl} onChange={(e)=>saveAlarmSettings(alarmTime, alarmEnabled, 'sound', alarmStationName, e.target.value)} className="w-full bg-zinc-800 p-3 rounded-xl appearance-none border border-zinc-600 text-white font-medium pr-8 text-sm truncate focus:border-blue-500 outline-none">
-                                  {customSounds.map((s,i)=><option key={i} value={s.url}>{s.name}</option>)}
-                              </select>
-                              <ChevronDown className="absolute right-3 top-3.5 text-zinc-500 pointer-events-none" size={16}/>
-                          </div>
-                          <button onClick={() => testSound(alarmSoundUrl)} className={`p-3 rounded-xl transition-colors ${isTestingSound?'bg-red-500 text-white shadow-lg animate-pulse':'bg-zinc-700 text-zinc-300 hover:bg-zinc-600'}`} title={isTestingSound ? "Parar prueba" : "Probar sonido"}>
-                              {isTestingSound ? <Square size={20} fill="currentColor"/> : <Play size={20} fill="currentColor"/>}
-                          </button>
-                      </div>
-                    </div>
-                  )}
-
-                  {alarmType === 'radio' && (
-                    <div className="space-y-2">
-                      <label className="text-xs text-zinc-400 font-bold">Emisora:</label>
-                      <div className="relative">
-                          <select value={alarmStationName} onChange={(e)=>saveAlarmSettings(alarmTime, alarmEnabled, 'radio', e.target.value, alarmSoundUrl)} className="w-full bg-zinc-800 p-3 rounded-xl appearance-none border border-zinc-600 text-white font-medium pr-8 text-sm focus:border-green-500 outline-none">
-                              {stations.map((s,i)=><option key={i} value={s.name}>{s.name}</option>)}
-                          </select>
-                          <ChevronDown className="absolute right-3 top-3.5 text-zinc-500 pointer-events-none" size={16}/>
-                      </div>
-                    </div>
-                  )}
-                  
-                  <button onClick={() => {saveAlarmSettings(alarmTime, !alarmEnabled, alarmType, alarmStationName, alarmSoundUrl); setShowAlarmModal(false);}} className={`w-full py-3 rounded-xl font-bold ${alarmEnabled ? 'bg-red-900/50 text-red-200 border border-red-500/50' : 'bg-green-600'}`}>{alarmEnabled ? 'DESACTIVAR' : 'ACTIVAR'}</button>
-                </div>
-              </div>
-            )}
-
-            {/* --- LAYOUT FIJO: NUEVA ESTRUCTURA (TODO A LA IZQUIERDA) --- */}
+            {/* --- LAYOUT DE WIDGETS --- */}
             <div className="relative z-10 flex flex-row h-full w-full p-6 pt-6 pb-2">
               
               {/* COLUMNA IZQUIERDA (Reloj + Widgets apilados) */}
@@ -1020,10 +856,10 @@ export default function App() {
                   </div>
                 </div>
 
-                {/* 2. Grupo de Widgets (Abajo, apilados: Radio -> Clima -> Pronóstico) */}
+                {/* 2. Grupo de Widgets (Abajo) */}
                 <div className="flex flex-col space-y-2 justify-end mt-auto">
                   
-                  {/* Widget Radio (Aparece encima de Clima si está activo) */}
+                  {/* Widget Radio */}
                   {currentStation && (
                     <div className="w-full max-w-sm h-20">
                       <div className="bg-black/30 backdrop-blur-md p-3 rounded-2xl border border-white/10 flex items-center justify-between w-full h-full">
@@ -1036,7 +872,6 @@ export default function App() {
                           </div>
                         </div>
                         
-                        {/* Vúmetro entre texto y botones */}
                         {vizLevels && (
                           <div className="flex items-end gap-1 h-8 mx-4" aria-hidden="true">
                             {vizLevels.map((level, idx) => (
@@ -1057,7 +892,7 @@ export default function App() {
                     </div>
                   )}
 
-                  {/* Widget Clima Actual (Encima de Pronóstico) */}
+                  {/* Widget Clima */}
                   <div className="bg-black/30 backdrop-blur-md p-4 rounded-3xl border border-white/10 shadow-xl w-full max-w-sm h-52 flex flex-col justify-center">
                     {loading ? <div className="h-full flex items-center justify-center"><p>Cargando...</p></div> : error ? <div className="h-full flex items-center justify-center text-red-300"><p>{error}</p></div> : (
                       <>
@@ -1089,7 +924,7 @@ export default function App() {
                     )}
                   </div>
 
-                  {/* Widget Pronóstico (Abajo del todo) */}
+                  {/* Widget Pronóstico */}
                   {!loading && weather && (
                     <div className="bg-black/30 backdrop-blur-md p-3 rounded-3xl border border-white/5 shadow-2xl w-full max-w-md h-36 flex flex-col box-border">
                       <h3 className="text-[15px] font-bold uppercase text-gray-300 mb-1 border-b border-white/10 pb-2 flex-shrink-0">PRONÓSTICO 7 DÍAS PARA {locationName.toUpperCase()}</h3>
@@ -1105,13 +940,189 @@ export default function App() {
               </div>
 
               {/* COLUMNA DERECHA (Vacía para ver la foto) */}
-              <div className="w-7/12 h-full">
-                 {/* Espacio libre para la foto */}
-              </div>
+              <div className="w-7/12 h-full"></div>
             </div>
-
           </div>
       </div>
+
+      {/* 3. GLOBAL BRIGHTNESS OVERLAY (z-60) - PISO MEDIO */}
+      <div className="absolute inset-0 bg-black pointer-events-none transition-opacity duration-1000 z-[60]" style={{ opacity: (100 - brightness) / 100 }} />
+
+      {/* 4. ALARM OVERLAY (z-100) */}
+      {isRinging && (
+          <div className="fixed inset-0 z-[100] bg-red-600 flex flex-col items-center justify-center animate-pulse">
+            <div className="bg-black/90 p-12 rounded-3xl text-center border-4 border-white">
+              <h1 className="text-6xl font-bold mb-4">¡BUENOS DÍAS!</h1>
+              <p className="text-2xl text-gray-300 mb-8">
+                  {alarmType === 'radio' ? `Sonando: ${alarmStationName}` : 'Es hora de despertar'}
+              </p>
+              <button onClick={stopAlarm} className="px-12 py-6 bg-white text-black text-3xl font-bold rounded-full shadow-xl">DETENER</button>
+            </div>
+          </div>
+      )}
+
+      {/* 5. SCALED CONTROLS & MODALS (z-70) - PISO ALTO */}
+      {/* Esta capa está POR ENCIMA del oscurecedor. Los botones aquí brillarán siempre. */}
+      <div className="absolute inset-0 w-full h-full flex items-center justify-center z-[70] pointer-events-none">
+          <div 
+            style={{ 
+              width: '1280px', 
+              height: '800px', 
+              transform: `scale(${scale})`,
+              transformOrigin: 'center center'
+            }}
+            className="relative w-[1280px] h-[800px] flex-shrink-0"
+          >
+            {/* Controles (pointer-events-auto para que sean clicables) */}
+            <div className="absolute top-0 right-0 p-4 z-50 flex items-center space-x-3 text-white w-full justify-end pointer-events-auto">
+                <button onClick={toggleManualBrightness} className={`p-2 rounded-full ${brightness < 50 ? 'bg-blue-600 text-white shadow-lg' : 'bg-black/50 hover:bg-black/70 backdrop-blur-sm'}`}>{brightness < 50 ? <Moon size={20} /> : <Sun size={20} />}</button>
+                <button onClick={() => setShowRadioModal(true)} className={`p-2 rounded-full ${radioPlaying ? 'bg-blue-600 text-white shadow-lg' : 'bg-black/50 hover:bg-black/70 backdrop-blur-sm'}`}>{radioPlaying ? <Signal size={20} className="animate-pulse"/> : <Radio size={20} />}</button>
+                <button onClick={() => setShowAlarmModal(true)} className={`flex items-center space-x-2 px-3 py-2 rounded-full ${alarmEnabled ? 'bg-yellow-500 text-black shadow-lg' : 'bg-black/50 hover:bg-black/70 backdrop-blur-sm'}`}>{alarmEnabled && <span>{alarmTime}</span>}<Bell size={20}/></button>
+                <button onClick={() => setShowNotesModal(true)} className="p-2 bg-black/50 hover:bg-black/70 rounded-full backdrop-blur-sm"><StickyNote size={20} /></button>
+                <button onClick={() => setShowSettings(true)} className="p-2 bg-black/50 hover:bg-black/70 rounded-full backdrop-blur-sm"><Settings size={20} /></button>
+                <button onClick={toggleFullscreen} className="ml-2 p-2 bg-black/50 hover:bg-black/70 rounded-full backdrop-blur-sm"><Maximize size={20} /></button>
+            </div>
+
+            {/* Modales (pointer-events-auto) */}
+            <div className="pointer-events-auto">
+              {showRadioModal && (
+                <div className="absolute inset-0 bg-black/80 flex items-center justify-center p-4" style={{ zIndex: 9999 }}>
+                  <div className="bg-zinc-900 p-4 rounded-2xl w-full max-w-sm space-y-4 border border-zinc-700">
+                    <div className="flex justify-between"><h2 className="text-xl font-bold text-white">Radio</h2><button onClick={() => setShowRadioModal(false)} className="text-white"><X/></button></div>
+                    <div className="flex items-center justify-between mb-2">
+                      <button 
+                          onClick={fetchStationsData} 
+                          disabled={isUpdatingRadios} 
+                          className={`text-xs flex items-center gap-1 text-blue-400 ${isUpdatingRadios ? 'opacity-50' : 'hover:text-blue-300'}`}
+                      >
+                          <RefreshCw size={12} className={isUpdatingRadios ? "animate-spin" : ""} /> 
+                          {isUpdatingRadios ? "Actualizando..." : "Actualizar desde Dropbox"}
+                      </button>
+                    </div>
+                    {radioError && <div className="text-xs text-amber-400 flex gap-2"><AlertTriangle size={14}/> Error de stream. Usa modo externo.</div>}
+                    <div className="space-y-2 max-h-60 overflow-y-auto">
+                        {stations && stations.map((s, i) => (
+                          <button key={i} onClick={() => { toggleRadio(s); setShowRadioModal(false); }} className="w-full p-3 bg-zinc-800 rounded-xl flex items-center gap-3 hover:bg-zinc-700 text-white">
+                            <img src={s.logo} className="w-8 h-8 rounded bg-white/10 object-cover" alt=""/>
+                            <div className="text-left flex-1"><p className="font-bold text-sm">{s.name}</p></div>
+                            {s.forceExternal && <ExternalLink size={14} className="text-zinc-500"/>}
+                          </button>
+                        ))}
+                    </div>
+                    <div className="flex items-center gap-2 bg-zinc-800 p-2 rounded-xl">
+                        <Volume2 size={18} className="text-zinc-400"/>
+                        <input type="range" min="0" max="1" step="0.1" value={radioVolume} onChange={(e) => {setRadioVolume(parseFloat(e.target.value)); if(radioRef.current) radioRef.current.volume=parseFloat(e.target.value);}} className="w-full h-1 bg-zinc-600 rounded-lg cursor-pointer"/>
+                    </div>
+                    {(radioPlaying || radioError) && <button onClick={() => toggleRadio(null)} className="w-full py-3 bg-red-900/50 text-red-300 rounded-xl font-bold flex justify-center gap-2"><Square size={16} fill="currentColor"/> APAGAR</button>}
+                  </div>
+                </div>
+              )}
+
+              {showSettings && (
+                <div className="absolute inset-0 bg-black/80 flex items-center justify-center p-4" style={{ zIndex: 9999 }}>
+                  <div className="bg-zinc-900 p-4 rounded-2xl w-full max-w-sm space-y-4 border border-zinc-700 max-h-[90vh] overflow-y-auto text-white">
+                    <div className="flex justify-between"><h2 className="text-xl font-bold">Ajustes</h2><button onClick={() => setShowSettings(false)}><X/></button></div>
+                    
+                    <div className="bg-zinc-800 p-3 rounded-xl space-y-3">
+                        <div className="flex justify-between items-center"><span className="text-sm font-bold flex gap-2"><Moon size={16} className="text-blue-400"/> Modo Noche</span>
+                        <button onClick={() => saveSchedSettings(!schedEnabled, schedStart, schedEnd, dayBright, nightBright)} className={`w-10 h-5 rounded-full relative ${schedEnabled ? 'bg-green-600' : 'bg-zinc-600'}`}><span className={`absolute top-1 w-3 h-3 bg-white rounded-full transition-all ${schedEnabled ? 'left-6' : 'left-1'}`} /></button></div>
+                        {schedEnabled && (
+                          <div className="grid grid-cols-2 gap-2 text-xs">
+                              <div><label>Inicio</label><input type="time" value={schedStart} onChange={(e)=>saveSchedSettings(true,e.target.value,schedEnd,dayBright,nightBright)} className="w-full bg-zinc-900 p-1 rounded"/></div>
+                              <div><label>Fin</label><input type="time" value={schedEnd} onChange={(e)=>saveSchedSettings(true,schedStart,e.target.value,dayBright,nightBright)} className="w-full bg-zinc-900 p-1 rounded"/></div>
+                              <div className="col-span-2 space-y-1"><div className="flex justify-between"><span>Día</span><span>{dayBright}%</span></div><input type="range" min="10" max="100" value={dayBright} onChange={(e)=>saveSchedSettings(true,schedStart,schedEnd,parseInt(e.target.value),nightBright)} className="w-full h-1 bg-zinc-600"/></div>
+                              <div className="col-span-2 space-y-1"><div className="flex justify-between"><span>Noche</span><span>{nightBright}%</span></div><input type="range" min="0" max="100" value={nightBright} onChange={(e)=>saveSchedSettings(true,schedStart,schedEnd,dayBright,parseInt(e.target.value))} className="w-full h-1 bg-zinc-600"/></div>
+                          </div>
+                        )}
+                    </div>
+
+                    <div className="space-y-2">
+                        <label className="text-sm text-zinc-400 font-bold flex items-center space-x-2"><MapPin size={16}/> <span>Buscar Ubicación</span></label>
+                        <div className="flex space-x-2"><input type="text" value={searchQuery} onChange={(e)=>setSearchQuery(e.target.value)} placeholder="Ciudad o CP" className="flex-1 bg-zinc-800 text-white p-3 rounded-xl border border-zinc-600"/><button onClick={handleSearchLocation} disabled={isSearching} className="bg-blue-600 hover:bg-blue-500 p-3 rounded-xl text-white disabled:opacity-50">{isSearching ? <RefreshCw size={20} className="animate-spin"/> : <Search size={20}/>}</button></div>
+                        <button onClick={handleAutoDetectLocation} disabled={isSearching} className="text-xs text-blue-400 underline flex gap-1 items-center">
+                          {isSearching ? <RefreshCw size={10} className="animate-spin"/> : <Navigation size={10}/>}
+                          {isSearching ? "Localizando..." : "Usar ubicación auto (WiFi)"}
+                        </button>
+                    </div>
+
+                    <div className="space-y-2 pt-2 border-t border-zinc-700">
+                        <button onClick={fetchBackgroundImages} disabled={isUpdatingImages} className={`w-full py-3 bg-zinc-800 hover:bg-zinc-700 rounded-xl flex items-center justify-center space-x-2 font-bold border border-zinc-600 ${isUpdatingImages ? 'opacity-70' : ''}`}><RefreshCw size={18} className={isUpdatingImages ? 'animate-spin' : ''} /> <span>{isUpdatingImages ? 'Actualizando...' : 'Recargar XML Fondos'}</span></button>
+                        {xmlStatusMsg && <div className={`text-xs text-center p-2 rounded-lg border ${xmlStatusMsg.includes("Error") ? 'bg-red-900/30 border-red-800 text-red-300' : 'bg-green-900/30 border-green-800 text-green-300'}`}>{xmlStatusMsg}</div>}
+                    </div>
+                    <button onClick={toggleImageSource} className={`w-full py-3 rounded-xl flex items-center justify-center space-x-2 font-bold transition-colors ${usingCustomImages ? 'bg-indigo-600 hover:bg-indigo-500 text-white' : 'bg-blue-600 hover:bg-blue-500 text-white'}`}>{usingCustomImages ? <><Layers size={18} /><span>Cambiar a Fotos Aleatorias</span></> : <><ImageIcon size={18} /><span>Usar Mis Fotos</span></>}</button>
+                    {usingCustomImages && <div className="flex items-center justify-center space-x-2 text-xs text-zinc-400"><CheckCircle size={12} className="text-green-500" /><span>{customImages.length} fotos cargadas.</span></div>}
+                    
+                    <button onClick={() => fileInputRef.current?.click()} className="w-full py-3 bg-blue-600 rounded-xl flex items-center justify-center space-x-2 font-bold text-white"><ImageIcon size={18}/> <span>Subir Localmente</span></button>
+                    <input type="file" multiple accept="image/*" className="hidden" ref={fileInputRef} onChange={handleImageUpload}/>
+
+                    <button onClick={() => setShowSettings(false)} className="w-full py-3 mt-2 bg-green-600 hover:bg-green-500 rounded-xl text-white font-bold shadow-lg transition-transform active:scale-95">Aceptar</button>
+                  </div>
+                </div>
+              )}
+
+              {showNotesModal && (
+                <div className="absolute inset-0 bg-black/80 flex items-center justify-center p-4" style={{ zIndex: 9999 }}>
+                  <div className="bg-zinc-900 p-4 rounded-2xl w-full max-w-sm space-y-4 border border-zinc-700 h-[80vh] flex flex-col text-white">
+                    <div className="flex justify-between mb-2"><h2 className="text-xl font-bold flex items-center gap-2"><StickyNote size={20}/> Notas</h2><button onClick={() => setShowNotesModal(false)}><X/></button></div>
+                    <textarea 
+                      value={notes} 
+                      onChange={handleNotesChange}
+                      className="flex-1 w-full bg-zinc-800 p-4 rounded-xl text-white resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 text-lg leading-relaxed" 
+                      placeholder="Escribe aquí tus notas..." 
+                    />
+                    <p className="text-xs text-zinc-500 mt-2 text-center">Se guarda automáticamente</p>
+                  </div>
+                </div>
+              )}
+
+              {showAlarmModal && (
+                <div className="absolute inset-0 bg-black/80 flex items-center justify-center p-4" style={{ zIndex: 9999 }}>
+                  <div className="bg-zinc-900 p-6 rounded-2xl w-full max-w-sm space-y-6 border border-zinc-700 shadow-2xl text-white">
+                    <div className="flex justify-between"><h2 className="text-xl font-bold">Alarma</h2><button onClick={() => setShowAlarmModal(false)}><X/></button></div>
+                    <div className="flex justify-center"><input type="time" value={alarmTime} onChange={(e) => saveAlarmSettings(e.target.value, alarmEnabled, alarmType, alarmStationName, alarmSoundUrl)} className="bg-zinc-800 text-5xl p-4 rounded-xl text-center w-full"/></div>
+                    
+                    <div className="bg-zinc-800 p-1 rounded-xl flex gap-1">
+                        <button onClick={() => saveAlarmSettings(alarmTime, alarmEnabled, 'sound', alarmStationName, alarmSoundUrl)} className={`flex-1 py-2 rounded-lg flex justify-center gap-2 text-sm ${alarmType==='sound'?'bg-blue-600':'text-zinc-400'}`}><FileAudio size={16}/> Audio</button>
+                        <button onClick={() => saveAlarmSettings(alarmTime, alarmEnabled, 'radio', alarmStationName, alarmSoundUrl)} className={`flex-1 py-2 rounded-lg flex justify-center gap-2 text-sm ${alarmType==='radio'?'bg-green-600':'text-zinc-400'}`}><Radio size={16}/> Radio</button>
+                    </div>
+
+                    {alarmType === 'sound' && (
+                      <div className="space-y-2">
+                        <div className="flex justify-between text-xs text-zinc-400 font-bold"><span>Sonido:</span> <button onClick={fetchAlarmSounds} className="text-blue-400 flex gap-1 items-center"><RefreshCw size={10}/> XML</button></div>
+                        <div className="flex gap-2">
+                            <div className="relative flex-grow">
+                                <select value={alarmSoundUrl} onChange={(e)=>saveAlarmSettings(alarmTime, alarmEnabled, 'sound', alarmStationName, e.target.value)} className="w-full bg-zinc-800 p-3 rounded-xl appearance-none border border-zinc-600 text-white font-medium pr-8 text-sm truncate focus:border-blue-500 outline-none">
+                                    {customSounds.map((s,i)=><option key={i} value={s.url}>{s.name}</option>)}
+                                </select>
+                                <ChevronDown className="absolute right-3 top-3.5 text-zinc-500 pointer-events-none" size={16}/>
+                            </div>
+                            <button onClick={() => testSound(alarmSoundUrl)} className={`p-3 rounded-xl transition-colors ${isTestingSound?'bg-red-500 text-white shadow-lg animate-pulse':'bg-zinc-700 text-zinc-300 hover:bg-zinc-600'}`} title={isTestingSound ? "Parar prueba" : "Probar sonido"}>
+                                {isTestingSound ? <Square size={20} fill="currentColor"/> : <Play size={20} fill="currentColor"/>}
+                            </button>
+                        </div>
+                      </div>
+                    )}
+
+                    {alarmType === 'radio' && (
+                      <div className="space-y-2">
+                        <label className="text-xs text-zinc-400 font-bold">Emisora:</label>
+                        <div className="relative">
+                            <select value={alarmStationName} onChange={(e)=>saveAlarmSettings(alarmTime, alarmEnabled, 'radio', e.target.value, alarmSoundUrl)} className="w-full bg-zinc-800 p-3 rounded-xl appearance-none border border-zinc-600 text-white font-medium pr-8 text-sm focus:border-green-500 outline-none">
+                                {stations.map((s,i)=><option key={i} value={s.name}>{s.name}</option>)}
+                            </select>
+                            <ChevronDown className="absolute right-3 top-3.5 text-zinc-500 pointer-events-none" size={16}/>
+                        </div>
+                      </div>
+                    )}
+                    
+                    <button onClick={() => {saveAlarmSettings(alarmTime, !alarmEnabled, alarmType, alarmStationName, alarmSoundUrl); setShowAlarmModal(false);}} className={`w-full py-3 rounded-xl font-bold ${alarmEnabled ? 'bg-red-900/50 text-red-200 border border-red-500/50' : 'bg-green-600'}`}>{alarmEnabled ? 'DESACTIVAR' : 'ACTIVAR'}</button>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+      </div>
+
     </div>
   );
 }
