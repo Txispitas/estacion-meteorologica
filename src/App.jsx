@@ -2,12 +2,19 @@ import React, { useState, useEffect, useRef } from 'react';
 import { 
   Cloud, CloudRain, Sun, Wind, Droplets, Maximize, 
   CloudSnow, CloudLightning, Settings, Image as ImageIcon, X,
-  Bell, Radio, Play, Square, Volume2, Signal, Pause, Power, ExternalLink, AlertTriangle, RefreshCw, Layers, CheckCircle, MapPin, Search, Navigation, ArrowUp, ArrowDown, Gauge, ChevronDown, Moon, FileAudio, Calendar, RotateCcw, StickyNote
+  Bell, Radio, Play, Square, Volume2, Signal, Pause, Power, ExternalLink, AlertTriangle, RefreshCw, Layers, CheckCircle, MapPin, Search, Navigation, ArrowUp, ArrowDown, Gauge, ChevronDown, Moon, FileAudio, Calendar, RotateCcw, StickyNote, Plus, Trash2, Clock, Check, Edit3, Save, Archive, Clock3
 } from 'lucide-react';
 
 // ==========================================
 // 1. CONSTANTES Y CONFIGURACIÓN (POR ESTACIONES)
 // ==========================================
+
+const NOTE_COLORS = [
+  { name: 'yellow', bg: 'bg-yellow-200', text: 'text-yellow-900', border: 'border-yellow-400/50', placeholder: 'placeholder-yellow-700/30' },
+  { name: 'blue', bg: 'bg-cyan-200', text: 'text-cyan-900', border: 'border-cyan-400/50', placeholder: 'placeholder-cyan-700/30' },
+  { name: 'pink', bg: 'bg-pink-200', text: 'text-pink-900', border: 'border-pink-400/50', placeholder: 'placeholder-pink-700/30' },
+  { name: 'green', bg: 'bg-green-200', text: 'text-green-900', border: 'border-green-400/50', placeholder: 'placeholder-green-700/30' }
+];
 
 // Colecciones temáticas por estación para dar variedad real (20 fotos por estación)
 const SEASONAL_IMAGES = {
@@ -245,20 +252,59 @@ export default function App() {
   const [showRadioModal, setShowRadioModal] = useState(false);
   const [showNotesModal, setShowNotesModal] = useState(false);
   
-  const [notes, setNotes] = useState(() => safeLocalStorage.getItem('userNotes') || "");
   const [weather, setWeather] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   
-  // Alarma
-  const [alarmTime, setAlarmTime] = useState(() => safeLocalStorage.getItem('alarmTime') || "07:00");
-  const [alarmEnabled, setAlarmEnabled] = useState(() => safeLocalStorage.getItem('alarmEnabled') === 'true');
-  const [alarmType, setAlarmType] = useState(() => safeLocalStorage.getItem('alarmType') || 'sound');
-  const [alarmStationName, setAlarmStationName] = useState(() => safeLocalStorage.getItem('alarmStationName') || "Radio Popular");
-  const [alarmSoundUrl, setAlarmSoundUrl] = useState(() => safeLocalStorage.getItem('alarmSoundUrl') || DEFAULT_ALARM_SOUNDS[0].url);
-  const [isRinging, setIsRinging] = useState(false);
+  // ==========================================
+  // GESTIÓN DE NOTAS MÚLTIPLES (POST-ITS)
+  // ==========================================
+  const [notes, setNotes] = useState(() => {
+    const saved = safeLocalStorage.getItem('notesList');
+    if (saved) {
+      try { return JSON.parse(saved); } catch (e) {}
+    }
+    // Migración
+    const oldNote = safeLocalStorage.getItem('userNotes');
+    if (oldNote) {
+      return [{ id: Date.now(), text: oldNote, date: "", time: "", color: "yellow" }];
+    }
+    return [];
+  });
+  const [triggeredNote, setTriggeredNote] = useState(null);
+  const [editingNoteId, setEditingNoteId] = useState(null); // ID de la nota que se está editando en grande
+  const [noteInteractionStep, setNoteInteractionStep] = useState('alert'); // 'alert' | 'decision'
+
+  // ==========================================
+  // GESTIÓN DE ALARMAS MÚLTIPLES
+  // ==========================================
+  const [alarms, setAlarms] = useState(() => {
+    const saved = safeLocalStorage.getItem('alarms');
+    if (saved) {
+      try { return JSON.parse(saved); } catch (e) { console.error("Error parsing alarms", e); }
+    }
+    // Migración para usuarios antiguos (convierte la alarma simple en la primera de la lista)
+    const legacyTime = safeLocalStorage.getItem('alarmTime') || "07:00";
+    const legacyEnabled = safeLocalStorage.getItem('alarmEnabled') === 'true';
+    const legacyType = safeLocalStorage.getItem('alarmType') || 'sound';
+    const legacyStation = safeLocalStorage.getItem('alarmStationName') || "Radio Popular";
+    const legacySound = safeLocalStorage.getItem('alarmSoundUrl') || DEFAULT_ALARM_SOUNDS[0].url;
+    
+    return [{
+      id: Date.now(),
+      time: legacyTime,
+      enabled: legacyEnabled,
+      type: legacyType,
+      station: legacyStation,
+      soundUrl: legacySound
+    }];
+  });
+
+  const [ringingAlarm, setRingingAlarm] = useState(null); // Objeto de la alarma que suena
   const [isTestingSound, setIsTestingSound] = useState(false);
-  
+  const [activeAlarmCount, setActiveAlarmCount] = useState(0);
+  const [nextAlarmTime, setNextAlarmTime] = useState(null);
+
   // Brillo
   const [brightness, setBrightness] = useState(100);
   const [schedEnabled, setSchedEnabled] = useState(() => safeLocalStorage.getItem('schedEnabled') === 'true');
@@ -300,12 +346,10 @@ export default function App() {
   // --- FUNCIÓN MEJORADA: REEMPLAZA FOTOS ROTAS CON RESERVAS ---
   const handleImageError = (badUrl) => {
     const currentSeason = getSeason();
-    const backupPool = SEASONAL_IMAGES[currentSeason]; // Usamos las fotos internas como reserva
+    const backupPool = SEASONAL_IMAGES[currentSeason]; 
 
     setImages((prevImages) => {
-      // Intentamos encontrar una imagen del pool de reserva que no esté ya en uso
       const replacement = backupPool.find(img => !prevImages.includes(img) && img !== badUrl);
-
       if (replacement) {
          return prevImages.map(img => img === badUrl ? replacement : img);
       } else {
@@ -347,21 +391,125 @@ export default function App() {
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
-  const handleNotesChange = (e) => {
-    const text = e.target.value;
-    setNotes(text);
-    safeLocalStorage.setItem('userNotes', text);
+  // --- GESTIÓN DE NOTAS ---
+  const saveNotes = (newNotes) => {
+    setNotes(newNotes);
+    safeLocalStorage.setItem('notesList', JSON.stringify(newNotes));
   };
 
+  const addNote = () => {
+    const newNote = {
+      id: Date.now(),
+      text: "",
+      date: "",
+      time: "",
+      color: "yellow"
+    };
+    const updatedNotes = [...notes, newNote];
+    saveNotes(updatedNotes);
+    setEditingNoteId(newNote.id); // Abrir directamente en modo edición
+  };
+
+  const deleteNote = (id) => {
+    saveNotes(notes.filter(n => n.id !== id));
+    if (editingNoteId === id) setEditingNoteId(null);
+  };
+
+  const updateNote = (id, field, value) => {
+    const newNotes = notes.map(n => {
+      if (n.id === id) return { ...n, [field]: value };
+      return n;
+    });
+    saveNotes(newNotes);
+  };
+
+  const snoozeNote = () => {
+    if (!triggeredNote) return;
+    const now = new Date();
+    now.setMinutes(now.getMinutes() + 5);
+    
+    // Obtener nueva hora y fecha
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    const day = String(now.getDate()).padStart(2, '0');
+    const dateStr = `${year}-${month}-${day}`;
+    // Usar toLocaleTimeString con opciones para asegurar formato HH:MM consistente
+    const timeStr = now.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit', hour12: false });
+
+    updateNote(triggeredNote.id, 'date', dateStr);
+    updateNote(triggeredNote.id, 'time', timeStr);
+    setTriggeredNote(null);
+    setNoteInteractionStep('alert'); // Resetear para la próxima
+  };
+
+  const handleUnderstood = () => {
+    setNoteInteractionStep('decision');
+  };
+
+  const keepNote = () => {
+    // Ya se borró la programación en el intervalo, así que solo cerramos
+    // Si queremos estar seguros de que no suena, ya está hecho.
+    setTriggeredNote(null);
+    setNoteInteractionStep('alert');
+  };
+
+  const discardNote = () => {
+    if (triggeredNote) {
+        deleteNote(triggeredNote.id);
+    }
+    setTriggeredNote(null);
+    setNoteInteractionStep('alert');
+  };
+
+  // --- GESTIÓN DE ALARMAS ---
+  const saveAlarms = (newAlarms) => {
+    setAlarms(newAlarms);
+    safeLocalStorage.setItem('alarms', JSON.stringify(newAlarms));
+    
+    // Calcular próxima alarma para mostrar
+    const activeAlarms = newAlarms.filter(a => a.enabled);
+    setActiveAlarmCount(activeAlarms.length);
+    if(activeAlarms.length > 0) {
+        // Ordenar por hora simple (string comparison funciona para formato HH:MM)
+        const sorted = [...activeAlarms].sort((a,b) => a.time.localeCompare(b.time));
+        setNextAlarmTime(sorted[0].time);
+    } else {
+        setNextAlarmTime(null);
+    }
+  };
+
+  const addAlarm = () => {
+    const newAlarm = {
+        id: Date.now(),
+        time: "08:00",
+        enabled: true,
+        type: 'sound',
+        station: stations[0].name,
+        soundUrl: DEFAULT_ALARM_SOUNDS[0].url
+    };
+    saveAlarms([...alarms, newAlarm]);
+  };
+
+  const deleteAlarm = (id) => {
+    saveAlarms(alarms.filter(a => a.id !== id));
+  };
+
+  const updateAlarm = (id, field, value) => {
+    const newAlarms = alarms.map(a => {
+        if (a.id === id) return { ...a, [field]: value };
+        return a;
+    });
+    saveAlarms(newAlarms);
+  };
+
+  // --- FUNCIONES DE UBICACIÓN ---
   const handleAutoDetectLocation = async () => {
       setIsSearching(true);
       try {
         const response = await fetch('https://get.geojs.io/v1/ip/geo.json');
         const data = await response.json();
-        
         const newCoords = { lat: parseFloat(data.latitude), lon: parseFloat(data.longitude) };
         const cityName = data.city || "Ubicación Red";
-        
         setCoords(newCoords);
         setLocationName(cityName);
         safeLocalStorage.setItem('locLat', newCoords.lat);
@@ -369,7 +517,6 @@ export default function App() {
         safeLocalStorage.setItem('locName', cityName);
         setIsSearching(false);
         setShowSettings(false);
-
       } catch (err) {
           if (navigator.geolocation) {
               navigator.geolocation.getCurrentPosition(
@@ -463,14 +610,11 @@ export default function App() {
   const fetchStationsData = async () => {
     setIsUpdatingRadios(true);
     try {
-      // Anti-caché
       const response = await fetch(`${convertDropboxUrl(RADIOS_XML_URL)}&t=${new Date().getTime()}&r=${Math.random()}`);
-      
       if (!response.ok) throw new Error("Error XML Radios");
       const text = await response.text();
       const parser = new DOMParser();
       const xmlDoc = parser.parseFromString(text, "text/xml");
-      
       const stationTags = xmlDoc.getElementsByTagName("station");
       if (stationTags.length > 0) {
         const newStations = [];
@@ -479,7 +623,6 @@ export default function App() {
           const url = stationTags[i].getAttribute("url");
           const logo = stationTags[i].getAttribute("logo");
           const isExternal = stationTags[i].getAttribute("external") === "true";
-          
           if (name && url) {
             newStations.push({
               name: name,
@@ -517,7 +660,6 @@ export default function App() {
       }
       if (newSounds.length > 0) {
           setCustomSounds(newSounds);
-          if (!newSounds.find(s => s.url === alarmSoundUrl)) setAlarmSoundUrl(newSounds[0].url);
       }
     } catch (err) {}
   };
@@ -551,7 +693,6 @@ export default function App() {
 
   const toggleImageSource = () => {
     if (usingCustomImages) {
-      // AL VOLVER AL MODO PREDETERMINADO, RECALCULAR ESTACIÓN
       const currentSeason = getSeason();
       const seasonImages = SEASONAL_IMAGES[currentSeason];
       setImages([...seasonImages].sort(() => Math.random() - 0.5));
@@ -593,24 +734,62 @@ export default function App() {
     fetchAlarmSounds();
     updateBrightness();
     if (!safeLocalStorage.getItem('locLat')) handleAutoDetectLocation();
+    
+    // Inicializar visualización de próxima alarma
+    const activeAlarms = alarms.filter(a => a.enabled);
+    setActiveAlarmCount(activeAlarms.length);
+    if(activeAlarms.length > 0) {
+        const sorted = [...activeAlarms].sort((a,b) => a.time.localeCompare(b.time));
+        setNextAlarmTime(sorted[0].time);
+    }
   }, []);
 
   useEffect(() => {
     const timer = setInterval(() => {
       const now = new Date();
       setTime(now);
-      if (alarmEnabled && !isRinging) {
-        const currentTimeString = now.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
-        if (currentTimeString === alarmTime && now.getSeconds() === 0) {
-          triggerAlarm();
+      
+      const currentTimeString = now.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit', hour12: false });
+      // FORMATO YYYY-MM-DD para comparar fecha de notas
+      const year = now.getFullYear();
+      const month = String(now.getMonth() + 1).padStart(2, '0');
+      const day = String(now.getDate()).padStart(2, '0');
+      const currentDateString = `${year}-${month}-${day}`;
+
+      // CHEQUEO DE ALARMAS
+      if (!ringingAlarm) {
+        const alarmTriggered = alarms.find(a => a.enabled && a.time === currentTimeString);
+        if (alarmTriggered && now.getSeconds() === 0) {
+          triggerAlarm(alarmTriggered);
         }
       }
+
+      // CHEQUEO DE NOTAS PROGRAMADAS
+      if (!triggeredNote) {
+        const noteToTrigger = notes.find(n => {
+           // Chequear si tiene fecha y hora
+           if (n.date && n.time) {
+              return n.date === currentDateString && n.time === currentTimeString;
+           }
+           return false;
+        });
+        
+        if (noteToTrigger && now.getSeconds() === 0) {
+           setTriggeredNote(noteToTrigger);
+           setNoteInteractionStep('alert'); // Empezar en fase de alerta
+           // Eliminar la programación para que no vuelva a saltar (One-time reminder)
+           updateNote(noteToTrigger.id, 'time', ''); // Borramos hora para que no repita
+           updateNote(noteToTrigger.id, 'date', ''); 
+           setBrightness(dayBright); // Iluminar pantalla
+        }
+      }
+
       if (now.getSeconds() === 0) {
           updateBrightness();
       }
     }, 1000);
     return () => clearInterval(timer);
-  }, [alarmEnabled, alarmTime, isRinging, alarmType, alarmStationName, alarmSoundUrl, schedEnabled, schedStart, schedEnd, dayBright, nightBright, brightness]);
+  }, [alarms, notes, ringingAlarm, triggeredNote, schedEnabled, schedStart, schedEnd, dayBright, nightBright, brightness]);
 
   useEffect(() => {
     if (images.length <= 1) return;
@@ -633,18 +812,19 @@ export default function App() {
     }
   };
 
-  const triggerAlarm = () => {
-    setBrightness(dayBright); 
-    setIsRinging(true);
-    if (alarmType === 'radio') {
-      const stationToPlay = stations.find(s => s.name === alarmStationName) || stations[0];
+  const triggerAlarm = (alarmConfig) => {
+    setRingingAlarm(alarmConfig);
+    setBrightness(dayBright); // Iluminar pantalla
+    
+    if (alarmConfig.type === 'radio') {
+      const stationToPlay = stations.find(s => s.name === alarmConfig.station) || stations[0];
       if (currentStation?.name !== stationToPlay.name || !radioPlaying) {
           toggleRadio(stationToPlay);
       }
     } else {
       if (radioPlaying) toggleRadio(null);
       if (audioRef.current) {
-        audioRef.current.src = convertDropboxUrl(alarmSoundUrl);
+        audioRef.current.src = convertDropboxUrl(alarmConfig.soundUrl);
         audioRef.current.volume = 1.0;
         audioRef.current.load();
         audioRef.current.loop = true;
@@ -654,8 +834,8 @@ export default function App() {
   };
 
   const stopAlarm = () => {
-    setIsRinging(false);
-    if (alarmType === 'radio') {
+    setRingingAlarm(null);
+    if (ringingAlarm?.type === 'radio') {
         toggleRadio(null);
     } else {
         if (audioRef.current) {
@@ -663,19 +843,6 @@ export default function App() {
           audioRef.current.currentTime = 0;
         }
     }
-  };
-
-  const saveAlarmSettings = (newTime, enabled, type, station, soundUrl) => {
-    setAlarmTime(newTime);
-    setAlarmEnabled(enabled);
-    setAlarmType(type);
-    setAlarmStationName(station);
-    setAlarmSoundUrl(soundUrl);
-    safeLocalStorage.setItem('alarmTime', newTime);
-    safeLocalStorage.setItem('alarmEnabled', enabled);
-    safeLocalStorage.setItem('alarmType', type);
-    safeLocalStorage.setItem('alarmStationName', station);
-    safeLocalStorage.setItem('alarmSoundUrl', soundUrl);
   };
 
   const toggleRadio = async (station) => {
@@ -729,7 +896,6 @@ export default function App() {
     } catch (error) {
         if (error.name !== 'AbortError') {
             console.error("Error radio:", error);
-            // setRadioError(true); 
         }
     }
   };
@@ -948,20 +1114,130 @@ export default function App() {
       {/* 3. GLOBAL BRIGHTNESS OVERLAY (z-60) - PISO MEDIO */}
       <div className="absolute inset-0 bg-black pointer-events-none transition-opacity duration-1000 z-[60]" style={{ opacity: (100 - brightness) / 100 }} />
 
-      {/* 4. ALARM OVERLAY (z-100) */}
-      {isRinging && (
+      {/* 4. NOTA PROGRAMADA TRIGGER (z-90) - AVISO GIGANTE (AJUSTADO) */}
+      {triggeredNote && (
+        <div className="fixed inset-0 z-[90] flex items-center justify-center p-8 bg-black/70 backdrop-blur-sm animate-in fade-in zoom-in duration-500">
+           <div className={`relative w-[70vw] max-w-2xl aspect-square md:aspect-video ${NOTE_COLORS.find(c => c.name === triggeredNote.color)?.bg || 'bg-yellow-200'} shadow-[0_20px_50px_rgba(0,0,0,0.5)] transform -rotate-1 flex flex-col p-8 rounded-sm`}>
+              {/* Cinta adhesiva visual */}
+              <div className="absolute -top-6 left-1/2 transform -translate-x-1/2 w-48 h-12 bg-white/40 rotate-1 backdrop-blur-sm shadow-sm border border-white/20"></div>
+              
+              <div className="flex-1 font-serif text-3xl md:text-5xl leading-tight text-gray-800 whitespace-pre-wrap flex items-center justify-center text-center p-4 drop-shadow-sm">
+                 {triggeredNote.text}
+              </div>
+              
+              {/* BOTONES INTERACTIVOS - FASES */}
+              <div className="absolute bottom-8 right-8 left-8 flex justify-center gap-4">
+                 {noteInteractionStep === 'alert' ? (
+                    <>
+                        <button onClick={snoozeNote} className="flex-1 max-w-[180px] bg-white/50 hover:bg-white text-gray-800 font-bold uppercase tracking-widest border-2 border-gray-400 hover:border-black px-6 py-3 rounded-full transition-all flex items-center justify-center gap-2">
+                            <Clock3 size={20} /> Posponer
+                        </button>
+                        <button onClick={handleUnderstood} className="flex-1 max-w-[180px] bg-gray-800 hover:bg-black text-white font-bold uppercase tracking-widest border-2 border-transparent px-6 py-3 rounded-full transition-all flex items-center justify-center gap-2 shadow-lg">
+                            <Check size={20} /> Entendido
+                        </button>
+                    </>
+                 ) : (
+                    <>
+                        <button onClick={discardNote} className="flex-1 max-w-[180px] bg-red-100 hover:bg-red-200 text-red-800 font-bold uppercase tracking-widest border-2 border-red-300 hover:border-red-500 px-6 py-3 rounded-full transition-all flex items-center justify-center gap-2">
+                            <Trash2 size={20} /> Eliminar
+                        </button>
+                        <button onClick={keepNote} className="flex-1 max-w-[180px] bg-green-600 hover:bg-green-700 text-white font-bold uppercase tracking-widest border-2 border-transparent px-6 py-3 rounded-full transition-all flex items-center justify-center gap-2 shadow-lg">
+                            <Archive size={20} /> Mantener
+                        </button>
+                    </>
+                 )}
+              </div>
+           </div>
+        </div>
+      )}
+
+      {/* 5. EDITOR DE NOTA GIGANTE (z-95) - MODO EDICIÓN (AJUSTADO) */}
+      {editingNoteId && (
+        <div className="fixed inset-0 z-[95] flex items-center justify-center bg-black/60 backdrop-blur-md p-4 animate-in fade-in duration-200">
+           {/* Encontrar la nota actual */}
+           {(() => {
+              const note = notes.find(n => n.id === editingNoteId);
+              if (!note) return null;
+              const colorTheme = NOTE_COLORS.find(c => c.name === note.color) || NOTE_COLORS[0];
+
+              return (
+                <div className={`relative w-full max-w-2xl aspect-[4/3] ${colorTheme.bg} shadow-2xl transform rotate-1 flex flex-col p-8 transition-colors duration-300`}>
+                    
+                    {/* Botón Cerrar */}
+                    <button onClick={() => setEditingNoteId(null)} className="absolute top-4 right-4 text-black/50 hover:text-black p-2 hover:bg-black/10 rounded-full transition-colors z-20">
+                        <X size={32} />
+                    </button>
+
+                    {/* Selector de Color */}
+                    <div className="absolute top-6 left-8 flex gap-2 z-20">
+                        {NOTE_COLORS.map(c => (
+                            <button 
+                                key={c.name} 
+                                onClick={() => updateNote(note.id, 'color', c.name)}
+                                className={`w-8 h-8 rounded-full ${c.bg} border-2 ${c.name === note.color ? 'border-black scale-110 shadow-md' : 'border-black/10 hover:scale-110'} transition-all`}
+                            />
+                        ))}
+                    </div>
+
+                    {/* Área de Texto Gigante */}
+                    <textarea 
+                        value={note.text} 
+                        onChange={(e) => updateNote(note.id, 'text', e.target.value)}
+                        placeholder="Escribe tu nota aquí..."
+                        className={`flex-1 w-full bg-transparent resize-none focus:outline-none font-serif text-2xl md:text-4xl text-gray-800 leading-snug mt-10 p-4 ${colorTheme.placeholder}`}
+                        autoFocus
+                    />
+
+                    {/* Panel de Programación Inferior */}
+                    <div className={`mt-4 pt-4 border-t-2 ${colorTheme.border} flex flex-wrap items-center gap-6 text-gray-700`}>
+                        <div className="flex items-center gap-2 bg-black/5 px-4 py-2 rounded-lg">
+                            <Calendar size={24} className="text-black/50"/>
+                            <input 
+                                type="date" 
+                                value={note.date} 
+                                onChange={(e) => updateNote(note.id, 'date', e.target.value)}
+                                className="bg-transparent text-xl font-medium focus:outline-none text-gray-800 cursor-pointer"
+                            />
+                        </div>
+                        <div className="flex items-center gap-2 bg-black/5 px-4 py-2 rounded-lg">
+                            <Clock size={24} className="text-black/50"/>
+                            <input 
+                                type="time" 
+                                value={note.time} 
+                                onChange={(e) => updateNote(note.id, 'time', e.target.value)}
+                                className="bg-transparent text-xl font-medium focus:outline-none text-gray-800 cursor-pointer"
+                            />
+                        </div>
+                        {note.date && note.time && (
+                            <div className="ml-auto text-green-700 font-bold uppercase tracking-widest flex items-center gap-2 text-sm bg-green-500/20 px-4 py-2 rounded-full">
+                                <CheckCircle size={18}/> Programada
+                            </div>
+                        )}
+                        
+                        <button onClick={() => deleteNote(note.id)} className="ml-auto p-3 text-red-500 hover:bg-red-500/10 rounded-full transition-colors" title="Borrar nota">
+                            <Trash2 size={24}/>
+                        </button>
+                    </div>
+                </div>
+              );
+           })()}
+        </div>
+      )}
+
+      {/* 6. ALARM OVERLAY (z-100) */}
+      {ringingAlarm && (
           <div className="fixed inset-0 z-[100] bg-red-600 flex flex-col items-center justify-center animate-pulse">
             <div className="bg-black/90 p-12 rounded-3xl text-center border-4 border-white">
               <h1 className="text-6xl font-bold mb-4">¡BUENOS DÍAS!</h1>
               <p className="text-2xl text-gray-300 mb-8">
-                  {alarmType === 'radio' ? `Sonando: ${alarmStationName}` : 'Es hora de despertar'}
+                  {ringingAlarm.type === 'radio' ? `Sonando: ${ringingAlarm.station}` : 'Es hora de despertar'}
               </p>
               <button onClick={stopAlarm} className="px-12 py-6 bg-white text-black text-3xl font-bold rounded-full shadow-xl">DETENER</button>
             </div>
           </div>
       )}
 
-      {/* 5. SCALED CONTROLS & MODALS (z-70) - PISO ALTO */}
+      {/* 7. SCALED CONTROLS & MODALS (z-70) - PISO ALTO */}
       {/* Esta capa está POR ENCIMA del oscurecedor. Los botones aquí brillarán siempre. */}
       <div className="absolute inset-0 w-full h-full flex items-center justify-center z-[70] pointer-events-none">
           <div 
@@ -977,8 +1253,17 @@ export default function App() {
             <div className="absolute top-0 right-0 p-4 z-50 flex items-center space-x-3 text-white w-full justify-end pointer-events-auto">
                 <button onClick={toggleManualBrightness} className={`p-2 rounded-full ${brightness < 50 ? 'bg-blue-600 text-white shadow-lg' : 'bg-black/50 hover:bg-black/70 backdrop-blur-sm'}`}>{brightness < 50 ? <Moon size={20} /> : <Sun size={20} />}</button>
                 <button onClick={() => setShowRadioModal(true)} className={`p-2 rounded-full ${radioPlaying ? 'bg-blue-600 text-white shadow-lg' : 'bg-black/50 hover:bg-black/70 backdrop-blur-sm'}`}>{radioPlaying ? <Signal size={20} className="animate-pulse"/> : <Radio size={20} />}</button>
-                <button onClick={() => setShowAlarmModal(true)} className={`flex items-center space-x-2 px-3 py-2 rounded-full ${alarmEnabled ? 'bg-yellow-500 text-black shadow-lg' : 'bg-black/50 hover:bg-black/70 backdrop-blur-sm'}`}>{alarmEnabled && <span>{alarmTime}</span>}<Bell size={20}/></button>
-                <button onClick={() => setShowNotesModal(true)} className="p-2 bg-black/50 hover:bg-black/70 rounded-full backdrop-blur-sm"><StickyNote size={20} /></button>
+                
+                {/* BOTÓN ALARMAS ACTUALIZADO */}
+                <button onClick={() => setShowAlarmModal(true)} className={`flex items-center space-x-2 px-3 py-2 rounded-full ${activeAlarmCount > 0 ? 'bg-yellow-500 text-black shadow-lg' : 'bg-black/50 hover:bg-black/70 backdrop-blur-sm'}`}>
+                    {activeAlarmCount > 0 && <span>{nextAlarmTime}</span>}
+                    <Bell size={20}/>
+                </button>
+
+                <button onClick={() => setShowNotesModal(true)} className="p-2 bg-black/50 hover:bg-black/70 rounded-full backdrop-blur-sm relative">
+                   <StickyNote size={20} />
+                   {notes.length > 0 && <span className="absolute -top-1 -right-1 w-4 h-4 bg-yellow-500 rounded-full text-[10px] flex items-center justify-center text-black font-bold">{notes.length}</span>}
+                </button>
                 <button onClick={() => setShowSettings(true)} className="p-2 bg-black/50 hover:bg-black/70 rounded-full backdrop-blur-sm"><Settings size={20} /></button>
                 <button onClick={toggleFullscreen} className="ml-2 p-2 bg-black/50 hover:bg-black/70 rounded-full backdrop-blur-sm"><Maximize size={20} /></button>
             </div>
@@ -1060,62 +1345,112 @@ export default function App() {
                 </div>
               )}
 
+              {/* MODAL DE NOTAS RENOVADO (TIPO TABLÓN DE CORCHO) */}
               {showNotesModal && (
                 <div className="absolute inset-0 bg-black/80 flex items-center justify-center p-4" style={{ zIndex: 9999 }}>
-                  <div className="bg-zinc-900 p-4 rounded-2xl w-full max-w-sm space-y-4 border border-zinc-700 h-[80vh] flex flex-col text-white">
-                    <div className="flex justify-between mb-2"><h2 className="text-xl font-bold flex items-center gap-2"><StickyNote size={20}/> Notas</h2><button onClick={() => setShowNotesModal(false)}><X/></button></div>
-                    <textarea 
-                      value={notes} 
-                      onChange={handleNotesChange}
-                      className="flex-1 w-full bg-zinc-800 p-4 rounded-xl text-white resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 text-lg leading-relaxed" 
-                      placeholder="Escribe aquí tus notas..." 
-                    />
-                    <p className="text-xs text-zinc-500 mt-2 text-center">Se guarda automáticamente</p>
+                  <div className="bg-zinc-900 p-6 rounded-2xl w-full max-w-4xl border border-zinc-700 h-[85vh] flex flex-col shadow-2xl relative overflow-hidden">
+                    <div className="flex justify-between items-center mb-4 z-10">
+                        <h2 className="text-2xl font-bold flex items-center gap-2 text-white"><StickyNote size={24}/> Tablón de Notas</h2>
+                        <div className="flex gap-2">
+                            <button onClick={addNote} className="bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded-lg font-bold flex items-center gap-2 shadow-lg"><Plus size={18}/> Nueva Nota</button>
+                            <button onClick={() => setShowNotesModal(false)} className="bg-zinc-800 hover:bg-zinc-700 text-white p-2 rounded-lg"><X size={24}/></button>
+                        </div>
+                    </div>
+                    
+                    {/* Grid de Post-its (VISTA PREVIA DE SOLO LECTURA) */}
+                    <div className="flex-1 overflow-y-auto grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 p-4 pb-20">
+                        {notes.length === 0 && (
+                            <div className="col-span-full flex flex-col items-center justify-center text-zinc-500 opacity-50 mt-20">
+                                <StickyNote size={64} className="mb-4"/>
+                                <p className="text-xl">El tablón está vacío.</p>
+                                <p className="text-sm">Añade una nota para empezar.</p>
+                            </div>
+                        )}
+                        {notes.map((note) => (
+                            <div 
+                                key={note.id} 
+                                onClick={() => setEditingNoteId(note.id)} // CLIC PARA ABRIR EDITOR
+                                className={`relative group ${NOTE_COLORS.find(c => c.name === note.color)?.bg || 'bg-yellow-200'} p-4 shadow-md transform transition hover:scale-105 hover:z-20 h-40 flex flex-col cursor-pointer hover:shadow-xl rotate-1 hover:rotate-0`}
+                            >
+                                {/* Texto truncado para vista previa */}
+                                <p className={`font-serif text-sm ${NOTE_COLORS.find(c => c.name === note.color)?.text || 'text-yellow-900'} overflow-hidden line-clamp-4 pointer-events-none`}>
+                                    {note.text || "Nota vacía..."}
+                                </p>
+                                
+                                {/* Indicadores */}
+                                <div className="mt-auto flex justify-between items-center text-[10px] text-black/40 font-bold uppercase pt-2 border-t border-black/10">
+                                    <span>{note.time ? `${note.time}` : ''}</span>
+                                    {note.date && <Calendar size={10}/>}
+                                </div>
+                                
+                                {/* Overlay de "Editar" al pasar el ratón */}
+                                <div className="absolute inset-0 bg-black/10 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center rounded-sm">
+                                    <span className="bg-white/80 px-2 py-1 rounded text-xs font-bold text-black flex items-center gap-1 shadow-sm"><Edit3 size={10}/> Editar</span>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
                   </div>
                 </div>
               )}
 
+              {/* MODAL DE ALARMAS ACTUALIZADO */}
               {showAlarmModal && (
                 <div className="absolute inset-0 bg-black/80 flex items-center justify-center p-4" style={{ zIndex: 9999 }}>
-                  <div className="bg-zinc-900 p-6 rounded-2xl w-full max-w-sm space-y-6 border border-zinc-700 shadow-2xl text-white">
-                    <div className="flex justify-between"><h2 className="text-xl font-bold">Alarma</h2><button onClick={() => setShowAlarmModal(false)}><X/></button></div>
-                    <div className="flex justify-center"><input type="time" value={alarmTime} onChange={(e) => saveAlarmSettings(e.target.value, alarmEnabled, alarmType, alarmStationName, alarmSoundUrl)} className="bg-zinc-800 text-5xl p-4 rounded-xl text-center w-full"/></div>
+                  <div className="bg-zinc-900 p-6 rounded-2xl w-full max-w-sm border border-zinc-700 shadow-2xl text-white flex flex-col max-h-[90vh]">
+                    <div className="flex justify-between mb-4"><h2 className="text-xl font-bold flex items-center gap-2"><Bell size={20}/> Alarmas</h2><button onClick={() => setShowAlarmModal(false)}><X/></button></div>
                     
-                    <div className="bg-zinc-800 p-1 rounded-xl flex gap-1">
-                        <button onClick={() => saveAlarmSettings(alarmTime, alarmEnabled, 'sound', alarmStationName, alarmSoundUrl)} className={`flex-1 py-2 rounded-lg flex justify-center gap-2 text-sm ${alarmType==='sound'?'bg-blue-600':'text-zinc-400'}`}><FileAudio size={16}/> Audio</button>
-                        <button onClick={() => saveAlarmSettings(alarmTime, alarmEnabled, 'radio', alarmStationName, alarmSoundUrl)} className={`flex-1 py-2 rounded-lg flex justify-center gap-2 text-sm ${alarmType==='radio'?'bg-green-600':'text-zinc-400'}`}><Radio size={16}/> Radio</button>
+                    <div className="flex-1 overflow-y-auto space-y-3 mb-4 pr-1">
+                      {alarms.map((alarm) => (
+                        <div key={alarm.id} className={`bg-zinc-800 p-3 rounded-xl border transition-all ${alarm.enabled ? 'border-yellow-500/50 shadow-md' : 'border-zinc-700 opacity-80'}`}>
+                           <div className="flex items-center justify-between mb-3">
+                              <input 
+                                type="time" 
+                                value={alarm.time} 
+                                onChange={(e) => updateAlarm(alarm.id, 'time', e.target.value)} 
+                                className="bg-transparent text-3xl font-bold focus:outline-none cursor-pointer"
+                              />
+                              <div className="flex items-center gap-2">
+                                <button onClick={() => updateAlarm(alarm.id, 'enabled', !alarm.enabled)} className={`w-10 h-6 rounded-full relative transition-colors ${alarm.enabled ? 'bg-green-500' : 'bg-zinc-600'}`}>
+                                    <span className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-all ${alarm.enabled ? 'left-5' : 'left-1'}`} />
+                                </button>
+                                <button onClick={() => deleteAlarm(alarm.id)} className="p-2 text-red-400 hover:text-red-300 hover:bg-red-900/20 rounded-full"><Trash2 size={16}/></button>
+                              </div>
+                           </div>
+                           
+                           {/* Configuración de la alarma (siempre visible o colapsable) */}
+                           <div className="space-y-2 pt-2 border-t border-zinc-700/50">
+                              <div className="flex bg-zinc-900 rounded-lg p-1 text-xs">
+                                  <button onClick={() => updateAlarm(alarm.id, 'type', 'sound')} className={`flex-1 py-1 rounded flex justify-center gap-1 ${alarm.type==='sound'?'bg-blue-600 text-white':'text-zinc-400'}`}><FileAudio size={12}/> Audio</button>
+                                  <button onClick={() => updateAlarm(alarm.id, 'type', 'radio')} className={`flex-1 py-1 rounded flex justify-center gap-1 ${alarm.type==='radio'?'bg-green-600 text-white':'text-zinc-400'}`}><Radio size={12}/> Radio</button>
+                              </div>
+                              
+                              {alarm.type === 'sound' ? (
+                                <div className="flex gap-2">
+                                  <div className="relative flex-grow">
+                                      <select value={alarm.soundUrl} onChange={(e)=>updateAlarm(alarm.id, 'soundUrl', e.target.value)} className="w-full bg-zinc-900 p-2 rounded-lg appearance-none text-xs text-white border border-zinc-700 outline-none truncate">
+                                          {customSounds.map((s,i)=><option key={i} value={s.url}>{s.name}</option>)}
+                                      </select>
+                                      <ChevronDown className="absolute right-2 top-2.5 text-zinc-500 pointer-events-none" size={12}/>
+                                  </div>
+                                  <button onClick={() => testSound(alarm.soundUrl)} className={`p-2 rounded-lg ${isTestingSound?'bg-red-500 animate-pulse':'bg-zinc-700'}`}><Play size={14}/></button>
+                                </div>
+                              ) : (
+                                <div className="relative">
+                                    <select value={alarm.station} onChange={(e)=>updateAlarm(alarm.id, 'station', e.target.value)} className="w-full bg-zinc-900 p-2 rounded-lg appearance-none text-xs text-white border border-zinc-700 outline-none">
+                                        {stations.map((s,i)=><option key={i} value={s.name}>{s.name}</option>)}
+                                    </select>
+                                    <ChevronDown className="absolute right-2 top-2.5 text-zinc-500 pointer-events-none" size={12}/>
+                                </div>
+                              )}
+                           </div>
+                        </div>
+                      ))}
                     </div>
 
-                    {alarmType === 'sound' && (
-                      <div className="space-y-2">
-                        <div className="flex justify-between text-xs text-zinc-400 font-bold"><span>Sonido:</span> <button onClick={fetchAlarmSounds} className="text-blue-400 flex gap-1 items-center"><RefreshCw size={10}/> XML</button></div>
-                        <div className="flex gap-2">
-                            <div className="relative flex-grow">
-                                <select value={alarmSoundUrl} onChange={(e)=>saveAlarmSettings(alarmTime, alarmEnabled, 'sound', alarmStationName, e.target.value)} className="w-full bg-zinc-800 p-3 rounded-xl appearance-none border border-zinc-600 text-white font-medium pr-8 text-sm truncate focus:border-blue-500 outline-none">
-                                    {customSounds.map((s,i)=><option key={i} value={s.url}>{s.name}</option>)}
-                                </select>
-                                <ChevronDown className="absolute right-3 top-3.5 text-zinc-500 pointer-events-none" size={16}/>
-                            </div>
-                            <button onClick={() => testSound(alarmSoundUrl)} className={`p-3 rounded-xl transition-colors ${isTestingSound?'bg-red-500 text-white shadow-lg animate-pulse':'bg-zinc-700 text-zinc-300 hover:bg-zinc-600'}`} title={isTestingSound ? "Parar prueba" : "Probar sonido"}>
-                                {isTestingSound ? <Square size={20} fill="currentColor"/> : <Play size={20} fill="currentColor"/>}
-                            </button>
-                        </div>
-                      </div>
-                    )}
-
-                    {alarmType === 'radio' && (
-                      <div className="space-y-2">
-                        <label className="text-xs text-zinc-400 font-bold">Emisora:</label>
-                        <div className="relative">
-                            <select value={alarmStationName} onChange={(e)=>saveAlarmSettings(alarmTime, alarmEnabled, 'radio', e.target.value, alarmSoundUrl)} className="w-full bg-zinc-800 p-3 rounded-xl appearance-none border border-zinc-600 text-white font-medium pr-8 text-sm focus:border-green-500 outline-none">
-                                {stations.map((s,i)=><option key={i} value={s.name}>{s.name}</option>)}
-                            </select>
-                            <ChevronDown className="absolute right-3 top-3.5 text-zinc-500 pointer-events-none" size={16}/>
-                        </div>
-                      </div>
-                    )}
-                    
-                    <button onClick={() => {saveAlarmSettings(alarmTime, !alarmEnabled, alarmType, alarmStationName, alarmSoundUrl); setShowAlarmModal(false);}} className={`w-full py-3 rounded-xl font-bold ${alarmEnabled ? 'bg-red-900/50 text-red-200 border border-red-500/50' : 'bg-green-600'}`}>{alarmEnabled ? 'DESACTIVAR' : 'ACTIVAR'}</button>
+                    <button onClick={addAlarm} className="w-full py-3 rounded-xl font-bold bg-blue-600 hover:bg-blue-500 flex items-center justify-center gap-2 shadow-lg transition-transform active:scale-95">
+                        <Plus size={20} /> AÑADIR ALARMA
+                    </button>
                   </div>
                 </div>
               )}
