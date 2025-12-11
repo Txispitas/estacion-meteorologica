@@ -956,7 +956,7 @@ export default function App() {
                   {/* Widget Radio (Aparece encima de Clima si está activo) */}
                   {currentStation && (
                     <div className="w-full max-w-sm h-20">
-                      <div className="bg-black/60 backdrop-blur-md p-3 rounded-2xl border border-white/10 flex items-center justify-between w-full h-full">
+                      <div className="bg-black/30 backdrop-blur-md p-3 rounded-2xl border border-white/10 flex items-center justify-between w-full h-full">
                         <div className="flex items-center space-x-4 min-w-0 flex-1">
                           <div className="relative flex-shrink-0"><img src={currentStation.logo} alt={currentStation.name} className="w-14 h-14 rounded-xl object-cover bg-white/10 shadow-lg" />{radioPlaying && !radioError && !currentStation.forceExternal && <div className="absolute inset-0 flex items-center justify-center"><div className="w-2 h-2 bg-blue-500 rounded-full absolute top-0 right-0 m-1"></div></div>}</div>
                           <div className="flex flex-col overflow-hidden">
@@ -988,7 +988,7 @@ export default function App() {
                   )}
 
                   {/* Widget Clima Actual (Encima de Pronóstico) */}
-                  <div className="bg-white/10 backdrop-blur-md p-4 rounded-3xl border border-white/10 shadow-xl w-full max-w-sm h-52 flex flex-col justify-center">
+                  <div className="bg-black/30 backdrop-blur-md p-4 rounded-3xl border border-white/10 shadow-xl w-full max-w-sm h-52 flex flex-col justify-center">
                     {loading ? <div className="h-full flex items-center justify-center"><p>Cargando...</p></div> : error ? <div className="h-full flex items-center justify-center text-red-300"><p>{error}</p></div> : (
                       <>
                         <h3 className="text-[15px] font-bold uppercase text-gray-300 mb-2 border-b border-white/10 pb-2 flex-shrink-0">EL TIEMPO EN {locationName.toUpperCase()}</h3>
@@ -1021,7 +1021,7 @@ export default function App() {
 
                   {/* Widget Pronóstico (Abajo del todo) */}
                   {!loading && weather && (
-                    <div className="bg-black/40 backdrop-blur-md p-3 rounded-3xl border border-white/5 shadow-2xl w-full max-w-md h-36 flex flex-col box-border">
+                    <div className="bg-black/30 backdrop-blur-md p-3 rounded-3xl border border-white/5 shadow-2xl w-full max-w-md h-36 flex flex-col box-border">
                       <h3 className="text-[15px] font-bold uppercase text-gray-300 mb-1 border-b border-white/10 pb-2 flex-shrink-0">PRONÓSTICO 7 DÍAS PARA {locationName.toUpperCase()}</h3>
                       <div className="flex overflow-x-auto pb-2 scrollbar-hide justify-between space-x-4 flex-grow items-center">
                         {weather.forecast.map((day, idx) => (
