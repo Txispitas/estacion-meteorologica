@@ -9,7 +9,7 @@ import {
 // 1. CONSTANTES Y CONFIGURACIÓN (POR ESTACIONES)
 // ==========================================
 
-// Colecciones temáticas por estación para dar variedad real
+// Colecciones temáticas por estación para dar variedad real (20 fotos por estación)
 const SEASONAL_IMAGES = {
   winter: [
     "https://images.unsplash.com/photo-1483664852095-d6cc6870705d?auto=format&fit=crop&w=1600&q=80", // Bosque nevado
@@ -21,7 +21,17 @@ const SEASONAL_IMAGES = {
     "https://images.unsplash.com/photo-1516431883659-655d41c09bf9?auto=format&fit=crop&w=1600&q=80", // Copos de nieve
     "https://images.unsplash.com/photo-1518182170546-0766ce6fec93?auto=format&fit=crop&w=1600&q=80", // Café invierno
     "https://images.unsplash.com/photo-1477601263568-180e2c6d046e?auto=format&fit=crop&w=1600&q=80", // Árbol solitario nieve
-    "https://images.unsplash.com/photo-1551524559-8af4e6624178?auto=format&fit=crop&w=1600&q=80"  // Estación esquí
+    "https://images.unsplash.com/photo-1551524559-8af4e6624178?auto=format&fit=crop&w=1600&q=80", // Estación esquí
+    "https://images.unsplash.com/photo-1548777123-e216912df7d8?auto=format&fit=crop&w=1600&q=80", // Zorro en la nieve
+    "https://images.unsplash.com/photo-1485594050903-8e8ee532298a?auto=format&fit=crop&w=1600&q=80", // Cabaña madera
+    "https://images.unsplash.com/photo-1518022525094-218670c9b74b?auto=format&fit=crop&w=1600&q=80", // Chimenea acogedora
+    "https://images.unsplash.com/photo-1484313544071-4d6d46b278bc?auto=format&fit=crop&w=1600&q=80", // Amanecer helado
+    "https://images.unsplash.com/photo-1519865885898-a54a6f2c7dad?auto=format&fit=crop&w=1600&q=80", // Lago congelado
+    "https://images.unsplash.com/photo-1455156218388-5e61b74ef3ac?auto=format&fit=crop&w=1600&q=80", // Lobo invierno
+    "https://images.unsplash.com/photo-1486496146582-9ffcd0b2b2b7?auto=format&fit=crop&w=1600&q=80", // Pinos nevados
+    "https://images.unsplash.com/photo-1542601098-8fc114e148e2?auto=format&fit=crop&w=1600&q=80", // Mañana fría azul
+    "https://images.unsplash.com/photo-1520627993077-447a1bc751d9?auto=format&fit=crop&w=1600&q=80", // Ventana escarchada
+    "https://images.unsplash.com/photo-1418985991508-e47386d96a71?auto=format&fit=crop&w=1600&q=80"  // Paisaje nórdico
   ],
   spring: [
     "https://images.unsplash.com/photo-1490750967868-bcdf92dd212b?auto=format&fit=crop&w=1600&q=80", // Flores campo
@@ -33,7 +43,17 @@ const SEASONAL_IMAGES = {
     "https://images.unsplash.com/photo-1434937173372-96425712e2eb?auto=format&fit=crop&w=1600&q=80", // Jardín
     "https://images.unsplash.com/photo-1470770903676-69b98201ea1c?auto=format&fit=crop&w=1600&q=80", // Paisaje verde intenso
     "https://images.unsplash.com/photo-1501630834273-4b5604d2ee31?auto=format&fit=crop&w=1600&q=80", // Nubes primavera
-    "https://images.unsplash.com/photo-1490604001847-b712b0c2f967?auto=format&fit=crop&w=1600&q=80"  // Hierba fresca
+    "https://images.unsplash.com/photo-1490604001847-b712b0c2f967?auto=format&fit=crop&w=1600&q=80", // Hierba fresca
+    "https://images.unsplash.com/photo-1528565257322-7907b4899c92?auto=format&fit=crop&w=1600&q=80", // Campo tulipanes
+    "https://images.unsplash.com/photo-1497250681960-ef046c08a56e?auto=format&fit=crop&w=1600&q=80", // Bosque verde brillante
+    "https://images.unsplash.com/photo-1533234977464-969d7830b063?auto=format&fit=crop&w=1600&q=80", // Mariposas/Flores
+    "https://images.unsplash.com/photo-1500964757637-c85e8a162699?auto=format&fit=crop&w=1600&q=80", // Cascada y musgo
+    "https://images.unsplash.com/photo-1465146344425-f00d5f5c8f07?auto=format&fit=crop&w=1600&q=80", // Bosque profundo
+    "https://images.unsplash.com/photo-1508197149814-0c0255a9339d?auto=format&fit=crop&w=1600&q=80", // Gotas rocío
+    "https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&w=1600&q=80", // Montañas verdes
+    "https://images.unsplash.com/photo-1526344966-89049886b28d?auto=format&fit=crop&w=1600&q=80", // Diente de león
+    "https://images.unsplash.com/photo-1558282717-368d40d9939e?auto=format&fit=crop&w=1600&q=80", // Campos lavanda
+    "https://images.unsplash.com/photo-1520962889616-a567d1b32d26?auto=format&fit=crop&w=1600&q=80"  // Pajarito rama
   ],
   summer: [
     "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1600&q=80", // Playa tropical
@@ -45,7 +65,17 @@ const SEASONAL_IMAGES = {
     "https://images.unsplash.com/photo-1533371452382-d45a9da51ad0?auto=format&fit=crop&w=1600&q=80", // Atardecer verano
     "https://images.unsplash.com/photo-1562664348-2182b3712081?auto=format&fit=crop&w=1600&q=80", // Helado/Fresco
     "https://images.unsplash.com/photo-1505118380757-91f5f5632de0?auto=format&fit=crop&w=1600&q=80", // Playa rocas
-    "https://images.unsplash.com/photo-1523712999610-f77fbcfc3843?auto=format&fit=crop&w=1600&q=80"  // Bosque verde verano
+    "https://images.unsplash.com/photo-1523712999610-f77fbcfc3843?auto=format&fit=crop&w=1600&q=80", // Bosque verde verano
+    "https://images.unsplash.com/photo-1502082553048-f009c37129b9?auto=format&fit=crop&w=1600&q=80", // Árbol solitario campo
+    "https://images.unsplash.com/photo-1437482078695-73f5ca6c96e2?auto=format&fit=crop&w=1600&q=80", // Barco lago
+    "https://images.unsplash.com/photo-1534096210335-a3b961613bb5?auto=format&fit=crop&w=1600&q=80", // Piña/Tropical
+    "https://images.unsplash.com/photo-1519046904884-53103b34b206?auto=format&fit=crop&w=1600&q=80", // Agua cristalina
+    "https://images.unsplash.com/photo-1494548162494-384bba4ab999?auto=format&fit=crop&w=1600&q=80", // Amanecer playa
+    "https://images.unsplash.com/photo-1528183429752-a97d0bf99b5a?auto=format&fit=crop&w=1600&q=80", // Bosque pino sol
+    "https://images.unsplash.com/photo-1500382017468-9049fed747ef?auto=format&fit=crop&w=1600&q=80", // Campo trigo
+    "https://images.unsplash.com/photo-1530281700549-e82e7bf110d6?auto=format&fit=crop&w=1600&q=80", // Perro playa
+    "https://images.unsplash.com/photo-1570077188670-e3a8d69ac5ff?auto=format&fit=crop&w=1600&q=80", // Gafas sol arena
+    "https://images.unsplash.com/photo-1496062031456-07b8f162a322?auto=format&fit=crop&w=1600&q=80"  // Montaña verde
   ],
   autumn: [
     "https://images.unsplash.com/photo-1507783548227-544c3b8bc260?auto=format&fit=crop&w=1600&q=80", // Hojas naranjas
@@ -57,7 +87,17 @@ const SEASONAL_IMAGES = {
     "https://images.unsplash.com/photo-1489659639091-8b687bc4386e?auto=format&fit=crop&w=1600&q=80", // Hojas suelo
     "https://images.unsplash.com/photo-1478131143081-80f7f84ca84d?auto=format&fit=crop&w=1600&q=80", // Niebla bosque
     "https://images.unsplash.com/photo-1504221507732-5246c045949b?auto=format&fit=crop&w=1600&q=80", // Tonos marrones
-    "https://images.unsplash.com/photo-1453791052107-5c843da62d97?auto=format&fit=crop&w=1600&q=80"  // Árboles secos
+    "https://images.unsplash.com/photo-1453791052107-5c843da62d97?auto=format&fit=crop&w=1600&q=80", // Árboles secos
+    "https://images.unsplash.com/photo-1502219422320-9ca47798b75b?auto=format&fit=crop&w=1600&q=80", // Lluvia ventana
+    "https://images.unsplash.com/photo-1517480447817-c740dc1d24f1?auto=format&fit=crop&w=1600&q=80", // Setas bosque
+    "https://images.unsplash.com/photo-1509560830495-7d8d21b7774d?auto=format&fit=crop&w=1600&q=80", // Piñas pino
+    "https://images.unsplash.com/photo-1485627658391-1365e4e0dbfe?auto=format&fit=crop&w=1600&q=80", // Libro y manta
+    "https://images.unsplash.com/photo-1512595083421-128c65f87483?auto=format&fit=crop&w=1600&q=80", // Banco parque hojas
+    "https://images.unsplash.com/photo-1498579482633-14f762dd79d1?auto=format&fit=crop&w=1600&q=80", // Gato ventana lluvia
+    "https://images.unsplash.com/photo-1542359549-29961726ee01?auto=format&fit=crop&w=1600&q=80", // Arroyo bosque otoño
+    "https://images.unsplash.com/photo-1511192336575-5a79af67a629?auto=format&fit=crop&w=1600&q=80", // Montañas niebla
+    "https://images.unsplash.com/photo-1503788311183-542557cd49b0?auto=format&fit=crop&w=1600&q=80", // Carretera bosque rojo
+    "https://images.unsplash.com/photo-1482015527294-7c8203ad9872?auto=format&fit=crop&w=1600&q=80"  // Atardecer dorado
   ]
 };
 
@@ -256,6 +296,12 @@ export default function App() {
   const audioRef = useRef(null);
   const radioRef = useRef(null);
   const externalWindowRef = useRef(null);
+
+  // --- NUEVA FUNCIÓN PARA ELIMINAR FOTOS ROTAS ---
+  const handleImageError = (badUrl) => {
+    // console.warn("Eliminando imagen rota:", badUrl); // Opcional: para depurar
+    setImages((prevImages) => prevImages.filter((img) => img !== badUrl));
+  };
 
   // --- EFECTO VÚMETRO ---
   useEffect(() => {
@@ -753,8 +799,18 @@ export default function App() {
       <div className="absolute inset-0 z-0">
           {images.map((img, index) => (
             <div key={index} className={`absolute inset-0 transition-opacity duration-1000 ${index === currentImageIndex ? 'opacity-100' : 'opacity-0'}`}>
-              <img src={img} alt="" className="absolute inset-0 w-full h-full object-cover blur-lg opacity-40 scale-105" />
-              <img src={img} alt="Fondo" className="absolute inset-0 w-full h-full object-cover z-10"/>
+              <img 
+                src={img} 
+                alt="" 
+                className="absolute inset-0 w-full h-full object-cover blur-lg opacity-40 scale-105" 
+                onError={() => handleImageError(img)} // Autolimpieza de imágenes rotas
+              />
+              <img 
+                src={img} 
+                alt="Fondo" 
+                className="absolute inset-0 w-full h-full object-cover z-10"
+                onError={() => handleImageError(img)} // Autolimpieza de imágenes rotas
+              />
             </div>
           ))}
           <div className="absolute inset-0 z-20 bg-gradient-to-r from-black/90 via-black/50 to-transparent" />
