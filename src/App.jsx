@@ -6,23 +6,60 @@ import {
 } from 'lucide-react';
 
 // ==========================================
-// 1. CONSTANTES Y CONFIGURACIÓN
+// 1. CONSTANTES Y CONFIGURACIÓN (POR ESTACIONES)
 // ==========================================
 
-const DEFAULT_IMAGES = [
-  "https://images.unsplash.com/photo-1472214103451-9374bd1c798e?ixlib=rb-4.0.3&auto=format&fit=crop&w=1600&q=80",
-  "https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?ixlib=rb-4.0.3&auto=format&fit=crop&w=1600&q=80",
-  "https://images.unsplash.com/photo-1447752875215-b2761acb3c5d?ixlib=rb-4.0.3&auto=format&fit=crop&w=1600&q=80",
-  "https://images.unsplash.com/photo-1501854140884-074cf2b2c3af?ixlib=rb-4.0.3&auto=format&fit=crop&w=1600&q=80",
-  "https://images.unsplash.com/photo-1534088568595-a066f410bcda?ixlib=rb-4.0.3&auto=format&fit=crop&w=1600&q=80",
-  "https://images.unsplash.com/photo-1469474968028-56623f02e42e?ixlib=rb-4.0.3&auto=format&fit=crop&w=1600&q=80",
-  "https://images.unsplash.com/photo-1506744038136-46273834b3fb?ixlib=rb-4.0.3&auto=format&fit=crop&w=1600&q=80",
-  "https://images.unsplash.com/photo-1475924156734-496f6cac6ec1?ixlib=rb-4.0.3&auto=format&fit=crop&w=1600&q=80",
-  "https://images.unsplash.com/photo-1433086966358-54859d0ed716?ixlib=rb-4.0.3&auto=format&fit=crop&w=1600&q=80",
-  "https://images.unsplash.com/photo-1504608524841-42fe6f032b4b?ixlib=rb-4.0.3&auto=format&fit=crop&w=1600&q=80",
-  "https://images.unsplash.com/photo-1493246507139-91e8fad9978e?ixlib=rb-4.0.3&auto=format&fit=crop&w=1600&q=80",
-  "https://images.unsplash.com/photo-1502082553048-f009c37129b9?ixlib=rb-4.0.3&auto=format&fit=crop&w=1600&q=80"
-];
+// Colecciones temáticas por estación para dar variedad real
+const SEASONAL_IMAGES = {
+  winter: [
+    "https://images.unsplash.com/photo-1483664852095-d6cc6870705d?auto=format&fit=crop&w=1600&q=80", // Bosque nevado
+    "https://images.unsplash.com/photo-1517299321609-52687d1bc55a?auto=format&fit=crop&w=1600&q=80", // Montaña nieve
+    "https://images.unsplash.com/photo-1457269449834-928af6406ed3?auto=format&fit=crop&w=1600&q=80", // Ramas con escarcha
+    "https://images.unsplash.com/photo-1476820865390-c52aeebb9891?auto=format&fit=crop&w=1600&q=80", // Camino invierno
+    "https://images.unsplash.com/photo-1544837339-21b92040b2cb?auto=format&fit=crop&w=1600&q=80", // Paisaje frío
+    "https://images.unsplash.com/photo-1489674267075-cee793167910?auto=format&fit=crop&w=1600&q=80", // Niebla y frío
+    "https://images.unsplash.com/photo-1516431883659-655d41c09bf9?auto=format&fit=crop&w=1600&q=80", // Copos de nieve
+    "https://images.unsplash.com/photo-1518182170546-0766ce6fec93?auto=format&fit=crop&w=1600&q=80", // Café invierno
+    "https://images.unsplash.com/photo-1477601263568-180e2c6d046e?auto=format&fit=crop&w=1600&q=80", // Árbol solitario nieve
+    "https://images.unsplash.com/photo-1551524559-8af4e6624178?auto=format&fit=crop&w=1600&q=80"  // Estación esquí
+  ],
+  spring: [
+    "https://images.unsplash.com/photo-1490750967868-bcdf92dd212b?auto=format&fit=crop&w=1600&q=80", // Flores campo
+    "https://images.unsplash.com/photo-1462275646964-a0e338679c17?auto=format&fit=crop&w=1600&q=80", // Pétalos rosa
+    "https://images.unsplash.com/photo-1470240731273-7821a6eeb6bd?auto=format&fit=crop&w=1600&q=80", // Pradera verde
+    "https://images.unsplash.com/photo-1522748906645-95d8adfd52c7?auto=format&fit=crop&w=1600&q=80", // Flores amarillas
+    "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?auto=format&fit=crop&w=1600&q=80", // Bosque luz filtrada
+    "https://images.unsplash.com/photo-1506898144207-6477d94f2d3d?auto=format&fit=crop&w=1600&q=80", // Cerezo en flor
+    "https://images.unsplash.com/photo-1434937173372-96425712e2eb?auto=format&fit=crop&w=1600&q=80", // Jardín
+    "https://images.unsplash.com/photo-1470770903676-69b98201ea1c?auto=format&fit=crop&w=1600&q=80", // Paisaje verde intenso
+    "https://images.unsplash.com/photo-1501630834273-4b5604d2ee31?auto=format&fit=crop&w=1600&q=80", // Nubes primavera
+    "https://images.unsplash.com/photo-1490604001847-b712b0c2f967?auto=format&fit=crop&w=1600&q=80"  // Hierba fresca
+  ],
+  summer: [
+    "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1600&q=80", // Playa tropical
+    "https://images.unsplash.com/photo-1473496169904-658ba7c44d8a?auto=format&fit=crop&w=1600&q=80", // Verano campo
+    "https://images.unsplash.com/photo-1501426026826-31c6674bea5f?auto=format&fit=crop&w=1600&q=80", // Mar azul
+    "https://images.unsplash.com/photo-1468413253725-0d5181091126?auto=format&fit=crop&w=1600&q=80", // Campo de girasoles
+    "https://images.unsplash.com/photo-1520645521318-f03a712f076f?auto=format&fit=crop&w=1600&q=80", // Piscina/Agua
+    "https://images.unsplash.com/photo-1472214103451-9374bd1c798e?auto=format&fit=crop&w=1600&q=80", // Paisaje abierto
+    "https://images.unsplash.com/photo-1533371452382-d45a9da51ad0?auto=format&fit=crop&w=1600&q=80", // Atardecer verano
+    "https://images.unsplash.com/photo-1562664348-2182b3712081?auto=format&fit=crop&w=1600&q=80", // Helado/Fresco
+    "https://images.unsplash.com/photo-1505118380757-91f5f5632de0?auto=format&fit=crop&w=1600&q=80", // Playa rocas
+    "https://images.unsplash.com/photo-1523712999610-f77fbcfc3843?auto=format&fit=crop&w=1600&q=80"  // Bosque verde verano
+  ],
+  autumn: [
+    "https://images.unsplash.com/photo-1507783548227-544c3b8bc260?auto=format&fit=crop&w=1600&q=80", // Hojas naranjas
+    "https://images.unsplash.com/photo-1477414348463-c0eb7f1359b6?auto=format&fit=crop&w=1600&q=80", // Camino otoño
+    "https://images.unsplash.com/photo-1446776811953-b23d57bd21aa?auto=format&fit=crop&w=1600&q=80", // Bosque dorado
+    "https://images.unsplash.com/photo-1508264165352-258db2ebd59b?auto=format&fit=crop&w=1600&q=80", // Calabazas/Cosecha
+    "https://images.unsplash.com/photo-1476483567836-39df900b3e77?auto=format&fit=crop&w=1600&q=80", // Taza caliente
+    "https://images.unsplash.com/photo-1509565840034-3c385bbe6451?auto=format&fit=crop&w=1600&q=80", // Parque otoño
+    "https://images.unsplash.com/photo-1489659639091-8b687bc4386e?auto=format&fit=crop&w=1600&q=80", // Hojas suelo
+    "https://images.unsplash.com/photo-1478131143081-80f7f84ca84d?auto=format&fit=crop&w=1600&q=80", // Niebla bosque
+    "https://images.unsplash.com/photo-1504221507732-5246c045949b?auto=format&fit=crop&w=1600&q=80", // Tonos marrones
+    "https://images.unsplash.com/photo-1453791052107-5c843da62d97?auto=format&fit=crop&w=1600&q=80"  // Árboles secos
+  ]
+};
 
 const RADIOS_XML_URL = "https://www.dropbox.com/scl/fi/6g2oybxzpg6n14yf0npxg/linksradios.xml?rlkey=hhmm8su5pux12xp3x9ntdevuj&st=ghtuckj0&dl=1";
 const IMAGES_XML_URL = "https://www.dropbox.com/scl/fi/9hmotdxbjdnadl9a56kck/fondos.xml?rlkey=fvsho46ok5gbk0xtfd7eqj97a&st=ifpmpfeq&dl=1";
@@ -109,6 +146,18 @@ const getWeekNumber = (d) => {
     return Math.ceil(( ( (d - yearStart) / 86400000) + 1)/7);
 };
 
+const getSeason = () => {
+  const month = new Date().getMonth(); // 0 = Enero, 11 = Diciembre
+  // Invierno: Diciembre, Enero, Febrero
+  if (month === 11 || month <= 1) return 'winter';
+  // Primavera: Marzo, Abril, Mayo
+  if (month >= 2 && month <= 4) return 'spring';
+  // Verano: Junio, Julio, Agosto
+  if (month >= 5 && month <= 7) return 'summer';
+  // Otoño: Septiembre, Octubre, Noviembre
+  return 'autumn';
+};
+
 const WeatherIcon = ({ type, className }) => {
     switch (type) {
       case 'sun': return <Sun className={className} />;
@@ -136,9 +185,14 @@ export default function App() {
   const [scale, setScale] = useState(1);
   const [isPortrait, setIsPortrait] = useState(false);
 
-  // Imágenes
+  // Imágenes - Inicialización con Estaciones y Aleatoriedad
   const [images, setImages] = useState(() => {
-    return [...DEFAULT_IMAGES].sort(() => Math.random() - 0.5);
+    // 1. Detectar estación
+    const currentSeason = getSeason();
+    // 2. Obtener lista base de esa estación
+    const seasonImages = SEASONAL_IMAGES[currentSeason];
+    // 3. Mezclar aleatoriamente (shuffle) para que no siempre empiece por la misma
+    return [...seasonImages].sort(() => Math.random() - 0.5);
   }); 
   const [customImages, setCustomImages] = useState([]); 
   const [usingCustomImages, setUsingCustomImages] = useState(false); 
@@ -440,7 +494,10 @@ export default function App() {
 
   const toggleImageSource = () => {
     if (usingCustomImages) {
-      setImages(DEFAULT_IMAGES);
+      // AL VOLVER AL MODO PREDETERMINADO, RECALCULAR ESTACIÓN
+      const currentSeason = getSeason();
+      const seasonImages = SEASONAL_IMAGES[currentSeason];
+      setImages([...seasonImages].sort(() => Math.random() - 0.5));
       setUsingCustomImages(false);
       setCurrentImageIndex(0);
       setXmlStatusMsg(""); 
@@ -688,23 +745,26 @@ export default function App() {
   }
 
   return (
-    <div className="w-screen h-screen bg-black overflow-hidden flex items-center justify-center font-sans relative selection:bg-none">
+    <div className="w-screen h-screen bg-black overflow-hidden font-sans relative selection:bg-none">
       <audio ref={audioRef} preload="auto" onEnded={() => setIsTestingSound(false)} />
       <audio ref={radioRef} preload="none" onError={(e) => { console.error("Audio error:", e); setRadioError(true); }} onPlaying={() => setRadioError(false)} />
       
-      <div 
-        style={{ 
-          width: '1280px', 
-          height: '800px', 
-          transform: `scale(${scale})`,
-          transformOrigin: 'center center'
-        }}
-        className="relative bg-zinc-900 text-white overflow-hidden shadow-2xl flex-shrink-0"
-      >
-        
-        <div className="absolute inset-0 bg-black pointer-events-none transition-opacity duration-1000 z-40" style={{ opacity: (100 - brightness) / 100 }} />
+      {/* 1. GLOBAL BACKGROUND (Full Screen) */}
+      <div className="absolute inset-0 z-0">
+          {images.map((img, index) => (
+            <div key={index} className={`absolute inset-0 transition-opacity duration-1000 ${index === currentImageIndex ? 'opacity-100' : 'opacity-0'}`}>
+              <img src={img} alt="" className="absolute inset-0 w-full h-full object-cover blur-lg opacity-40 scale-105" />
+              <img src={img} alt="Fondo" className="absolute inset-0 w-full h-full object-cover z-10"/>
+            </div>
+          ))}
+          <div className="absolute inset-0 z-20 bg-gradient-to-r from-black/90 via-black/50 to-transparent" />
+      </div>
 
-        {isRinging && (
+      {/* 2. GLOBAL BRIGHTNESS OVERLAY (Full Screen) */}
+      <div className="absolute inset-0 bg-black pointer-events-none transition-opacity duration-1000 z-[60]" style={{ opacity: (100 - brightness) / 100 }} />
+
+      {/* 3. ALARM OVERLAY (Full Screen - fixed z-index) */}
+      {isRinging && (
           <div className="fixed inset-0 z-[100] bg-red-600 flex flex-col items-center justify-center animate-pulse">
             <div className="bg-black/90 p-12 rounded-3xl text-center border-4 border-white">
               <h1 className="text-6xl font-bold mb-4">¡BUENOS DÍAS!</h1>
@@ -714,270 +774,273 @@ export default function App() {
               <button onClick={stopAlarm} className="px-12 py-6 bg-white text-black text-3xl font-bold rounded-full shadow-xl">DETENER</button>
             </div>
           </div>
-        )}
+      )}
 
-        <div className="absolute inset-0 z-0 bg-zinc-900">
-          {images.map((img, index) => (
-            <div key={index} className={`absolute inset-0 transition-opacity duration-1000 ${index === currentImageIndex ? 'opacity-100' : 'opacity-0'}`}>
-              <img src={img} alt="" className="absolute inset-0 w-full h-full object-cover blur-lg opacity-40 scale-105" />
-              <img src={img} alt="Fondo" className="absolute inset-0 w-full h-full object-contain z-10"/>
+      {/* 4. SCALED CONTAINER (Centered) */}
+      <div className="w-full h-full flex items-center justify-center relative z-10">
+          <div 
+            style={{ 
+              width: '1280px', 
+              height: '800px', 
+              transform: `scale(${scale})`,
+              transformOrigin: 'center center'
+            }}
+            className="relative w-[1280px] h-[800px] flex-shrink-0 text-white"
+          >
+            
+            <div className="absolute top-0 right-0 p-4 z-50 flex items-center space-x-3 text-white w-full justify-end">
+                <button onClick={toggleManualBrightness} className={`p-2 rounded-full ${brightness < 50 ? 'bg-blue-600 text-white shadow-lg' : 'bg-black/50 hover:bg-black/70 backdrop-blur-sm'}`}>{brightness < 50 ? <Moon size={20} /> : <Sun size={20} />}</button>
+                <button onClick={() => setShowRadioModal(true)} className={`p-2 rounded-full ${radioPlaying ? 'bg-blue-600 text-white shadow-lg' : 'bg-black/50 hover:bg-black/70 backdrop-blur-sm'}`}>{radioPlaying ? <Signal size={20} className="animate-pulse"/> : <Radio size={20} />}</button>
+                <button onClick={() => setShowAlarmModal(true)} className={`flex items-center space-x-2 px-3 py-2 rounded-full ${alarmEnabled ? 'bg-yellow-500 text-black shadow-lg' : 'bg-black/50 hover:bg-black/70 backdrop-blur-sm'}`}>{alarmEnabled && <span>{alarmTime}</span>}<Bell size={20}/></button>
+                <button onClick={() => setShowNotesModal(true)} className="p-2 bg-black/50 hover:bg-black/70 rounded-full backdrop-blur-sm"><StickyNote size={20} /></button>
+                <button onClick={() => setShowSettings(true)} className="p-2 bg-black/50 hover:bg-black/70 rounded-full backdrop-blur-sm"><Settings size={20} /></button>
+                <button onClick={toggleFullscreen} className="ml-2 p-2 bg-black/50 hover:bg-black/70 rounded-full backdrop-blur-sm"><Maximize size={20} /></button>
             </div>
-          ))}
-          <div className="absolute inset-0 z-20 bg-gradient-to-r from-black/90 via-black/50 to-transparent" />
-        </div>
 
-        <div className="absolute top-0 right-0 p-4 z-50 flex items-center space-x-3 text-white w-full justify-end">
-            <button onClick={toggleManualBrightness} className={`p-2 rounded-full ${brightness < 50 ? 'bg-blue-600 text-white shadow-lg' : 'bg-black/50 hover:bg-black/70 backdrop-blur-sm'}`}>{brightness < 50 ? <Moon size={20} /> : <Sun size={20} />}</button>
-            <button onClick={() => setShowRadioModal(true)} className={`p-2 rounded-full ${radioPlaying ? 'bg-blue-600 text-white shadow-lg' : 'bg-black/50 hover:bg-black/70 backdrop-blur-sm'}`}>{radioPlaying ? <Signal size={20} className="animate-pulse"/> : <Radio size={20} />}</button>
-            <button onClick={() => setShowAlarmModal(true)} className={`flex items-center space-x-2 px-3 py-2 rounded-full ${alarmEnabled ? 'bg-yellow-500 text-black shadow-lg' : 'bg-black/50 hover:bg-black/70 backdrop-blur-sm'}`}>{alarmEnabled && <span>{alarmTime}</span>}<Bell size={20}/></button>
-            <button onClick={() => setShowNotesModal(true)} className="p-2 bg-black/50 hover:bg-black/70 rounded-full backdrop-blur-sm"><StickyNote size={20} /></button>
-            <button onClick={() => setShowSettings(true)} className="p-2 bg-black/50 hover:bg-black/70 rounded-full backdrop-blur-sm"><Settings size={20} /></button>
-            <button onClick={toggleFullscreen} className="ml-2 p-2 bg-black/50 hover:bg-black/70 rounded-full backdrop-blur-sm"><Maximize size={20} /></button>
-        </div>
-
-        {/* Modales - Z-INDEX 9999 PARA FORZAR VISIBILIDAD */}
-        {showRadioModal && (
-          <div className="absolute inset-0 bg-black/80 flex items-center justify-center p-4" style={{ zIndex: 9999 }}>
-            <div className="bg-zinc-900 p-4 rounded-2xl w-full max-w-sm space-y-4 border border-zinc-700">
-              <div className="flex justify-between"><h2 className="text-xl font-bold">Radio</h2><button onClick={() => setShowRadioModal(false)}><X/></button></div>
-              <div className="flex items-center justify-between mb-2">
-                <button 
-                    onClick={fetchStationsData} 
-                    disabled={isUpdatingRadios} 
-                    className={`text-xs flex items-center gap-1 text-blue-400 ${isUpdatingRadios ? 'opacity-50' : 'hover:text-blue-300'}`}
-                >
-                    <RefreshCw size={12} className={isUpdatingRadios ? "animate-spin" : ""} /> 
-                    {isUpdatingRadios ? "Actualizando..." : "Actualizar desde Dropbox"}
-                </button>
-              </div>
-              {radioError && <div className="text-xs text-amber-400 flex gap-2"><AlertTriangle size={14}/> Error de stream. Usa modo externo.</div>}
-              <div className="space-y-2 max-h-60 overflow-y-auto">
-                  {stations && stations.map((s, i) => (
-                    <button key={i} onClick={() => { toggleRadio(s); setShowRadioModal(false); }} className="w-full p-3 bg-zinc-800 rounded-xl flex items-center gap-3 hover:bg-zinc-700">
-                      <img src={s.logo} className="w-8 h-8 rounded bg-white/10 object-cover" alt=""/>
-                      <div className="text-left flex-1"><p className="font-bold text-sm">{s.name}</p></div>
-                      {s.forceExternal && <ExternalLink size={14} className="text-zinc-500"/>}
+            {/* Modales - Z-INDEX 9999 PARA FORZAR VISIBILIDAD */}
+            {showRadioModal && (
+              <div className="absolute inset-0 bg-black/80 flex items-center justify-center p-4" style={{ zIndex: 9999 }}>
+                <div className="bg-zinc-900 p-4 rounded-2xl w-full max-w-sm space-y-4 border border-zinc-700">
+                  <div className="flex justify-between"><h2 className="text-xl font-bold">Radio</h2><button onClick={() => setShowRadioModal(false)}><X/></button></div>
+                  <div className="flex items-center justify-between mb-2">
+                    <button 
+                        onClick={fetchStationsData} 
+                        disabled={isUpdatingRadios} 
+                        className={`text-xs flex items-center gap-1 text-blue-400 ${isUpdatingRadios ? 'opacity-50' : 'hover:text-blue-300'}`}
+                    >
+                        <RefreshCw size={12} className={isUpdatingRadios ? "animate-spin" : ""} /> 
+                        {isUpdatingRadios ? "Actualizando..." : "Actualizar desde Dropbox"}
                     </button>
-                  ))}
+                  </div>
+                  {radioError && <div className="text-xs text-amber-400 flex gap-2"><AlertTriangle size={14}/> Error de stream. Usa modo externo.</div>}
+                  <div className="space-y-2 max-h-60 overflow-y-auto">
+                      {stations && stations.map((s, i) => (
+                        <button key={i} onClick={() => { toggleRadio(s); setShowRadioModal(false); }} className="w-full p-3 bg-zinc-800 rounded-xl flex items-center gap-3 hover:bg-zinc-700">
+                          <img src={s.logo} className="w-8 h-8 rounded bg-white/10 object-cover" alt=""/>
+                          <div className="text-left flex-1"><p className="font-bold text-sm">{s.name}</p></div>
+                          {s.forceExternal && <ExternalLink size={14} className="text-zinc-500"/>}
+                        </button>
+                      ))}
+                  </div>
+                  <div className="flex items-center gap-2 bg-zinc-800 p-2 rounded-xl">
+                      <Volume2 size={18} className="text-zinc-400"/>
+                      <input type="range" min="0" max="1" step="0.1" value={radioVolume} onChange={(e) => {setRadioVolume(parseFloat(e.target.value)); if(radioRef.current) radioRef.current.volume=parseFloat(e.target.value);}} className="w-full h-1 bg-zinc-600 rounded-lg cursor-pointer"/>
+                  </div>
+                  {(radioPlaying || radioError) && <button onClick={() => toggleRadio(null)} className="w-full py-3 bg-red-900/50 text-red-300 rounded-xl font-bold flex justify-center gap-2"><Square size={16} fill="currentColor"/> APAGAR</button>}
+                </div>
               </div>
-              <div className="flex items-center gap-2 bg-zinc-800 p-2 rounded-xl">
-                  <Volume2 size={18} className="text-zinc-400"/>
-                  <input type="range" min="0" max="1" step="0.1" value={radioVolume} onChange={(e) => {setRadioVolume(parseFloat(e.target.value)); if(radioRef.current) radioRef.current.volume=parseFloat(e.target.value);}} className="w-full h-1 bg-zinc-600 rounded-lg cursor-pointer"/>
-              </div>
-              {(radioPlaying || radioError) && <button onClick={() => toggleRadio(null)} className="w-full py-3 bg-red-900/50 text-red-300 rounded-xl font-bold flex justify-center gap-2"><Square size={16} fill="currentColor"/> APAGAR</button>}
-            </div>
-          </div>
-        )}
+            )}
 
-        {showSettings && (
-          <div className="absolute inset-0 bg-black/80 flex items-center justify-center p-4" style={{ zIndex: 9999 }}>
-            <div className="bg-zinc-900 p-4 rounded-2xl w-full max-w-sm space-y-4 border border-zinc-700 max-h-[90vh] overflow-y-auto">
-              <div className="flex justify-between"><h2 className="text-xl font-bold">Ajustes</h2><button onClick={() => setShowSettings(false)}><X/></button></div>
-              
-              <div className="bg-zinc-800 p-3 rounded-xl space-y-3">
-                  <div className="flex justify-between items-center"><span className="text-sm font-bold flex gap-2"><Moon size={16} className="text-blue-400"/> Modo Noche</span>
-                  <button onClick={() => saveSchedSettings(!schedEnabled, schedStart, schedEnd, dayBright, nightBright)} className={`w-10 h-5 rounded-full relative ${schedEnabled ? 'bg-green-600' : 'bg-zinc-600'}`}><span className={`absolute top-1 w-3 h-3 bg-white rounded-full transition-all ${schedEnabled ? 'left-6' : 'left-1'}`} /></button></div>
-                  {schedEnabled && (
-                    <div className="grid grid-cols-2 gap-2 text-xs">
-                        <div><label>Inicio</label><input type="time" value={schedStart} onChange={(e)=>saveSchedSettings(true,e.target.value,schedEnd,dayBright,nightBright)} className="w-full bg-zinc-900 p-1 rounded"/></div>
-                        <div><label>Fin</label><input type="time" value={schedEnd} onChange={(e)=>saveSchedSettings(true,schedStart,e.target.value,dayBright,nightBright)} className="w-full bg-zinc-900 p-1 rounded"/></div>
-                        <div className="col-span-2 space-y-1"><div className="flex justify-between"><span>Día</span><span>{dayBright}%</span></div><input type="range" min="10" max="100" value={dayBright} onChange={(e)=>saveSchedSettings(true,schedStart,schedEnd,parseInt(e.target.value),nightBright)} className="w-full h-1 bg-zinc-600"/></div>
-                        <div className="col-span-2 space-y-1"><div className="flex justify-between"><span>Noche</span><span>{nightBright}%</span></div><input type="range" min="0" max="100" value={nightBright} onChange={(e)=>saveSchedSettings(true,schedStart,schedEnd,dayBright,parseInt(e.target.value))} className="w-full h-1 bg-zinc-600"/></div>
+            {showSettings && (
+              <div className="absolute inset-0 bg-black/80 flex items-center justify-center p-4" style={{ zIndex: 9999 }}>
+                <div className="bg-zinc-900 p-4 rounded-2xl w-full max-w-sm space-y-4 border border-zinc-700 max-h-[90vh] overflow-y-auto">
+                  <div className="flex justify-between"><h2 className="text-xl font-bold">Ajustes</h2><button onClick={() => setShowSettings(false)}><X/></button></div>
+                  
+                  <div className="bg-zinc-800 p-3 rounded-xl space-y-3">
+                      <div className="flex justify-between items-center"><span className="text-sm font-bold flex gap-2"><Moon size={16} className="text-blue-400"/> Modo Noche</span>
+                      <button onClick={() => saveSchedSettings(!schedEnabled, schedStart, schedEnd, dayBright, nightBright)} className={`w-10 h-5 rounded-full relative ${schedEnabled ? 'bg-green-600' : 'bg-zinc-600'}`}><span className={`absolute top-1 w-3 h-3 bg-white rounded-full transition-all ${schedEnabled ? 'left-6' : 'left-1'}`} /></button></div>
+                      {schedEnabled && (
+                        <div className="grid grid-cols-2 gap-2 text-xs">
+                            <div><label>Inicio</label><input type="time" value={schedStart} onChange={(e)=>saveSchedSettings(true,e.target.value,schedEnd,dayBright,nightBright)} className="w-full bg-zinc-900 p-1 rounded"/></div>
+                            <div><label>Fin</label><input type="time" value={schedEnd} onChange={(e)=>saveSchedSettings(true,schedStart,e.target.value,dayBright,nightBright)} className="w-full bg-zinc-900 p-1 rounded"/></div>
+                            <div className="col-span-2 space-y-1"><div className="flex justify-between"><span>Día</span><span>{dayBright}%</span></div><input type="range" min="10" max="100" value={dayBright} onChange={(e)=>saveSchedSettings(true,schedStart,schedEnd,parseInt(e.target.value),nightBright)} className="w-full h-1 bg-zinc-600"/></div>
+                            <div className="col-span-2 space-y-1"><div className="flex justify-between"><span>Noche</span><span>{nightBright}%</span></div><input type="range" min="0" max="100" value={nightBright} onChange={(e)=>saveSchedSettings(true,schedStart,schedEnd,dayBright,parseInt(e.target.value))} className="w-full h-1 bg-zinc-600"/></div>
+                        </div>
+                      )}
+                  </div>
+
+                  <div className="space-y-2">
+                      <label className="text-sm text-zinc-400 font-bold flex items-center space-x-2"><MapPin size={16}/> <span>Buscar Ubicación</span></label>
+                      <div className="flex space-x-2"><input type="text" value={searchQuery} onChange={(e)=>setSearchQuery(e.target.value)} placeholder="Ciudad o CP" className="flex-1 bg-zinc-800 text-white p-3 rounded-xl border border-zinc-600"/><button onClick={handleSearchLocation} disabled={isSearching} className="bg-blue-600 hover:bg-blue-500 p-3 rounded-xl text-white disabled:opacity-50">{isSearching ? <RefreshCw size={20} className="animate-spin"/> : <Search size={20}/>}</button></div>
+                      <button onClick={handleAutoDetectLocation} disabled={isSearching} className="text-xs text-blue-400 underline flex gap-1 items-center">
+                        {isSearching ? <RefreshCw size={10} className="animate-spin"/> : <Navigation size={10}/>}
+                        {isSearching ? "Localizando..." : "Usar ubicación auto (WiFi)"}
+                      </button>
+                  </div>
+
+                  <div className="space-y-2 pt-2 border-t border-zinc-700">
+                      <button onClick={fetchBackgroundImages} disabled={isUpdatingImages} className={`w-full py-3 bg-zinc-800 hover:bg-zinc-700 rounded-xl flex items-center justify-center space-x-2 font-bold border border-zinc-600 ${isUpdatingImages ? 'opacity-70' : ''}`}><RefreshCw size={18} className={isUpdatingImages ? 'animate-spin' : ''} /> <span>{isUpdatingImages ? 'Actualizando...' : 'Recargar XML Fondos'}</span></button>
+                      {xmlStatusMsg && <div className={`text-xs text-center p-2 rounded-lg border ${xmlStatusMsg.includes("Error") ? 'bg-red-900/30 border-red-800 text-red-300' : 'bg-green-900/30 border-green-800 text-green-300'}`}>{xmlStatusMsg}</div>}
+                  </div>
+                  <button onClick={toggleImageSource} className={`w-full py-3 rounded-xl flex items-center justify-center space-x-2 font-bold transition-colors ${usingCustomImages ? 'bg-indigo-600 hover:bg-indigo-500 text-white' : 'bg-blue-600 hover:bg-blue-500 text-white'}`}>{usingCustomImages ? <><Layers size={18} /><span>Cambiar a Fotos Aleatorias</span></> : <><ImageIcon size={18} /><span>Usar Mis Fotos</span></>}</button>
+                  {usingCustomImages && <div className="flex items-center justify-center space-x-2 text-xs text-zinc-400"><CheckCircle size={12} className="text-green-500" /><span>{customImages.length} fotos cargadas.</span></div>}
+                  
+                  <button onClick={() => fileInputRef.current?.click()} className="w-full py-3 bg-blue-600 rounded-xl flex items-center justify-center space-x-2 font-bold text-white"><ImageIcon size={18}/> <span>Subir Localmente</span></button>
+                  <input type="file" multiple accept="image/*" className="hidden" ref={fileInputRef} onChange={handleImageUpload}/>
+
+                  <button onClick={() => setShowSettings(false)} className="w-full py-3 mt-2 bg-green-600 hover:bg-green-500 rounded-xl text-white font-bold shadow-lg transition-transform active:scale-95">Aceptar</button>
+                </div>
+              </div>
+            )}
+
+            {showNotesModal && (
+              <div className="absolute inset-0 bg-black/80 flex items-center justify-center p-4" style={{ zIndex: 9999 }}>
+                <div className="bg-zinc-900 p-4 rounded-2xl w-full max-w-sm space-y-4 border border-zinc-700 h-[80vh] flex flex-col">
+                  <div className="flex justify-between mb-2"><h2 className="text-xl font-bold flex items-center gap-2"><StickyNote size={20}/> Notas</h2><button onClick={() => setShowNotesModal(false)}><X/></button></div>
+                  <textarea 
+                    value={notes} 
+                    onChange={handleNotesChange}
+                    className="flex-1 w-full bg-zinc-800 p-4 rounded-xl text-white resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 text-lg leading-relaxed" 
+                    placeholder="Escribe aquí tus notas..." 
+                  />
+                  <p className="text-xs text-zinc-500 mt-2 text-center">Se guarda automáticamente</p>
+                </div>
+              </div>
+            )}
+
+            {showAlarmModal && (
+              <div className="absolute inset-0 bg-black/80 flex items-center justify-center p-4" style={{ zIndex: 9999 }}>
+                <div className="bg-zinc-900 p-6 rounded-2xl w-full max-w-sm space-y-6 border border-zinc-700 shadow-2xl">
+                  <div className="flex justify-between"><h2 className="text-xl font-bold">Alarma</h2><button onClick={() => setShowAlarmModal(false)}><X/></button></div>
+                  <div className="flex justify-center"><input type="time" value={alarmTime} onChange={(e) => saveAlarmSettings(e.target.value, alarmEnabled, alarmType, alarmStationName, alarmSoundUrl)} className="bg-zinc-800 text-5xl p-4 rounded-xl text-center w-full"/></div>
+                  
+                  <div className="bg-zinc-800 p-1 rounded-xl flex gap-1">
+                      <button onClick={() => saveAlarmSettings(alarmTime, alarmEnabled, 'sound', alarmStationName, alarmSoundUrl)} className={`flex-1 py-2 rounded-lg flex justify-center gap-2 text-sm ${alarmType==='sound'?'bg-blue-600':'text-zinc-400'}`}><FileAudio size={16}/> Audio</button>
+                      <button onClick={() => saveAlarmSettings(alarmTime, alarmEnabled, 'radio', alarmStationName, alarmSoundUrl)} className={`flex-1 py-2 rounded-lg flex justify-center gap-2 text-sm ${alarmType==='radio'?'bg-green-600':'text-zinc-400'}`}><Radio size={16}/> Radio</button>
+                  </div>
+
+                  {alarmType === 'sound' && (
+                    <div className="space-y-2">
+                      <div className="flex justify-between text-xs text-zinc-400 font-bold"><span>Sonido:</span> <button onClick={fetchAlarmSounds} className="text-blue-400 flex gap-1 items-center"><RefreshCw size={10}/> XML</button></div>
+                      <div className="flex gap-2">
+                          <div className="relative flex-grow">
+                              <select value={alarmSoundUrl} onChange={(e)=>saveAlarmSettings(alarmTime, alarmEnabled, 'sound', alarmStationName, e.target.value)} className="w-full bg-zinc-800 p-3 rounded-xl appearance-none border border-zinc-600 text-white font-medium pr-8 text-sm truncate focus:border-blue-500 outline-none">
+                                  {customSounds.map((s,i)=><option key={i} value={s.url}>{s.name}</option>)}
+                              </select>
+                              <ChevronDown className="absolute right-3 top-3.5 text-zinc-500 pointer-events-none" size={16}/>
+                          </div>
+                          <button onClick={() => testSound(alarmSoundUrl)} className={`p-3 rounded-xl transition-colors ${isTestingSound?'bg-red-500 text-white shadow-lg animate-pulse':'bg-zinc-700 text-zinc-300 hover:bg-zinc-600'}`} title={isTestingSound ? "Parar prueba" : "Probar sonido"}>
+                              {isTestingSound ? <Square size={20} fill="currentColor"/> : <Play size={20} fill="currentColor"/>}
+                          </button>
+                      </div>
                     </div>
                   )}
-              </div>
 
-              <div className="space-y-2">
-                  <label className="text-sm text-zinc-400 font-bold flex items-center space-x-2"><MapPin size={16}/> <span>Buscar Ubicación</span></label>
-                  <div className="flex space-x-2"><input type="text" value={searchQuery} onChange={(e)=>setSearchQuery(e.target.value)} placeholder="Ciudad o CP" className="flex-1 bg-zinc-800 text-white p-3 rounded-xl border border-zinc-600"/><button onClick={handleSearchLocation} disabled={isSearching} className="bg-blue-600 hover:bg-blue-500 p-3 rounded-xl text-white disabled:opacity-50">{isSearching ? <RefreshCw size={20} className="animate-spin"/> : <Search size={20}/>}</button></div>
-                  <button onClick={handleAutoDetectLocation} disabled={isSearching} className="text-xs text-blue-400 underline flex gap-1 items-center">
-                    {isSearching ? <RefreshCw size={10} className="animate-spin"/> : <Navigation size={10}/>}
-                    {isSearching ? "Localizando..." : "Usar ubicación auto (WiFi)"}
-                  </button>
-              </div>
-
-              <div className="space-y-2 pt-2 border-t border-zinc-700">
-                  <button onClick={fetchBackgroundImages} disabled={isUpdatingImages} className={`w-full py-3 bg-zinc-800 hover:bg-zinc-700 rounded-xl flex items-center justify-center space-x-2 font-bold border border-zinc-600 ${isUpdatingImages ? 'opacity-70' : ''}`}><RefreshCw size={18} className={isUpdatingImages ? 'animate-spin' : ''} /> <span>{isUpdatingImages ? 'Actualizando...' : 'Recargar XML Fondos'}</span></button>
-                  {xmlStatusMsg && <div className={`text-xs text-center p-2 rounded-lg border ${xmlStatusMsg.includes("Error") ? 'bg-red-900/30 border-red-800 text-red-300' : 'bg-green-900/30 border-green-800 text-green-300'}`}>{xmlStatusMsg}</div>}
-              </div>
-              <button onClick={toggleImageSource} className={`w-full py-3 rounded-xl flex items-center justify-center space-x-2 font-bold transition-colors ${usingCustomImages ? 'bg-indigo-600 hover:bg-indigo-500 text-white' : 'bg-blue-600 hover:bg-blue-500 text-white'}`}>{usingCustomImages ? <><Layers size={18} /><span>Cambiar a Fotos Aleatorias</span></> : <><ImageIcon size={18} /><span>Usar Mis Fotos</span></>}</button>
-              {usingCustomImages && <div className="flex items-center justify-center space-x-2 text-xs text-zinc-400"><CheckCircle size={12} className="text-green-500" /><span>{customImages.length} fotos cargadas.</span></div>}
-              
-              <button onClick={() => fileInputRef.current?.click()} className="w-full py-3 bg-blue-600 rounded-xl flex items-center justify-center space-x-2 font-bold text-white"><ImageIcon size={18}/> <span>Subir Localmente</span></button>
-              <input type="file" multiple accept="image/*" className="hidden" ref={fileInputRef} onChange={handleImageUpload}/>
-
-              <button onClick={() => setShowSettings(false)} className="w-full py-3 mt-2 bg-green-600 hover:bg-green-500 rounded-xl text-white font-bold shadow-lg transition-transform active:scale-95">Aceptar</button>
-            </div>
-          </div>
-        )}
-
-        {showNotesModal && (
-          <div className="absolute inset-0 bg-black/80 flex items-center justify-center p-4" style={{ zIndex: 9999 }}>
-            <div className="bg-zinc-900 p-4 rounded-2xl w-full max-w-sm space-y-4 border border-zinc-700 h-[80vh] flex flex-col">
-              <div className="flex justify-between mb-2"><h2 className="text-xl font-bold flex items-center gap-2"><StickyNote size={20}/> Notas</h2><button onClick={() => setShowNotesModal(false)}><X/></button></div>
-              <textarea 
-                value={notes} 
-                onChange={handleNotesChange}
-                className="flex-1 w-full bg-zinc-800 p-4 rounded-xl text-white resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 text-lg leading-relaxed" 
-                placeholder="Escribe aquí tus notas..." 
-              />
-              <p className="text-xs text-zinc-500 mt-2 text-center">Se guarda automáticamente</p>
-            </div>
-          </div>
-        )}
-
-        {showAlarmModal && (
-          <div className="absolute inset-0 bg-black/80 flex items-center justify-center p-4" style={{ zIndex: 9999 }}>
-            <div className="bg-zinc-900 p-6 rounded-2xl w-full max-w-sm space-y-6 border border-zinc-700 shadow-2xl">
-              <div className="flex justify-between"><h2 className="text-xl font-bold">Alarma</h2><button onClick={() => setShowAlarmModal(false)}><X/></button></div>
-              <div className="flex justify-center"><input type="time" value={alarmTime} onChange={(e) => saveAlarmSettings(e.target.value, alarmEnabled, alarmType, alarmStationName, alarmSoundUrl)} className="bg-zinc-800 text-5xl p-4 rounded-xl text-center w-full"/></div>
-              
-              <div className="bg-zinc-800 p-1 rounded-xl flex gap-1">
-                  <button onClick={() => saveAlarmSettings(alarmTime, alarmEnabled, 'sound', alarmStationName, alarmSoundUrl)} className={`flex-1 py-2 rounded-lg flex justify-center gap-2 text-sm ${alarmType==='sound'?'bg-blue-600':'text-zinc-400'}`}><FileAudio size={16}/> Audio</button>
-                  <button onClick={() => saveAlarmSettings(alarmTime, alarmEnabled, 'radio', alarmStationName, alarmSoundUrl)} className={`flex-1 py-2 rounded-lg flex justify-center gap-2 text-sm ${alarmType==='radio'?'bg-green-600':'text-zinc-400'}`}><Radio size={16}/> Radio</button>
-              </div>
-
-              {alarmType === 'sound' && (
-                <div className="space-y-2">
-                  <div className="flex justify-between text-xs text-zinc-400 font-bold"><span>Sonido:</span> <button onClick={fetchAlarmSounds} className="text-blue-400 flex gap-1 items-center"><RefreshCw size={10}/> XML</button></div>
-                  <div className="flex gap-2">
-                      <div className="relative flex-grow">
-                          <select value={alarmSoundUrl} onChange={(e)=>saveAlarmSettings(alarmTime, alarmEnabled, 'sound', alarmStationName, e.target.value)} className="w-full bg-zinc-800 p-3 rounded-xl appearance-none border border-zinc-600 text-white font-medium pr-8 text-sm truncate focus:border-blue-500 outline-none">
-                              {customSounds.map((s,i)=><option key={i} value={s.url}>{s.name}</option>)}
+                  {alarmType === 'radio' && (
+                    <div className="space-y-2">
+                      <label className="text-xs text-zinc-400 font-bold">Emisora:</label>
+                      <div className="relative">
+                          <select value={alarmStationName} onChange={(e)=>saveAlarmSettings(alarmTime, alarmEnabled, 'radio', e.target.value, alarmSoundUrl)} className="w-full bg-zinc-800 p-3 rounded-xl appearance-none border border-zinc-600 text-white font-medium pr-8 text-sm focus:border-green-500 outline-none">
+                              {stations.map((s,i)=><option key={i} value={s.name}>{s.name}</option>)}
                           </select>
                           <ChevronDown className="absolute right-3 top-3.5 text-zinc-500 pointer-events-none" size={16}/>
                       </div>
-                      <button onClick={() => testSound(alarmSoundUrl)} className={`p-3 rounded-xl transition-colors ${isTestingSound?'bg-red-500 text-white shadow-lg animate-pulse':'bg-zinc-700 text-zinc-300 hover:bg-zinc-600'}`} title={isTestingSound ? "Parar prueba" : "Probar sonido"}>
-                          {isTestingSound ? <Square size={20} fill="currentColor"/> : <Play size={20} fill="currentColor"/>}
-                      </button>
-                  </div>
-                </div>
-              )}
-
-              {alarmType === 'radio' && (
-                <div className="space-y-2">
-                  <label className="text-xs text-zinc-400 font-bold">Emisora:</label>
-                  <div className="relative">
-                      <select value={alarmStationName} onChange={(e)=>saveAlarmSettings(alarmTime, alarmEnabled, 'radio', e.target.value, alarmSoundUrl)} className="w-full bg-zinc-800 p-3 rounded-xl appearance-none border border-zinc-600 text-white font-medium pr-8 text-sm focus:border-green-500 outline-none">
-                          {stations.map((s,i)=><option key={i} value={s.name}>{s.name}</option>)}
-                      </select>
-                      <ChevronDown className="absolute right-3 top-3.5 text-zinc-500 pointer-events-none" size={16}/>
-                  </div>
-                </div>
-              )}
-              
-              <button onClick={() => {saveAlarmSettings(alarmTime, !alarmEnabled, alarmType, alarmStationName, alarmSoundUrl); setShowAlarmModal(false);}} className={`w-full py-3 rounded-xl font-bold ${alarmEnabled ? 'bg-red-900/50 text-red-200 border border-red-500/50' : 'bg-green-600'}`}>{alarmEnabled ? 'DESACTIVAR' : 'ACTIVAR'}</button>
-            </div>
-          </div>
-        )}
-
-        {/* --- LAYOUT FIJO: NUEVA ESTRUCTURA (TODO A LA IZQUIERDA) --- */}
-        <div className="relative z-10 flex flex-row h-full w-full p-6 pt-6 pb-2">
-          
-          {/* COLUMNA IZQUIERDA (Reloj + Widgets apilados) */}
-          <div className="w-5/12 flex flex-col justify-between mb-0 h-full">
-            
-            {/* 1. Reloj (Arriba) */}
-            <div className="space-y-2">
-              <div className="space-y-2 -mt-6">
-                <h1 className="text-[8rem] font-bold tracking-tighter leading-none whitespace-nowrap">{time.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })}</h1>
-                <div className="ml-2">
-                  <p className="text-3xl font-light text-gray-200 capitalize">{time.toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' })}</p>
-                  <p className="text-lg text-yellow-500/80 font-medium flex items-center space-x-2 mt-1"><Calendar size={16} /> <span>Semana {getWeekNumber(time)}</span></p>
+                    </div>
+                  )}
+                  
+                  <button onClick={() => {saveAlarmSettings(alarmTime, !alarmEnabled, alarmType, alarmStationName, alarmSoundUrl); setShowAlarmModal(false);}} className={`w-full py-3 rounded-xl font-bold ${alarmEnabled ? 'bg-red-900/50 text-red-200 border border-red-500/50' : 'bg-green-600'}`}>{alarmEnabled ? 'DESACTIVAR' : 'ACTIVAR'}</button>
                 </div>
               </div>
-            </div>
+            )}
 
-            {/* 2. Grupo de Widgets (Abajo, apilados: Radio -> Clima -> Pronóstico) */}
-            <div className="flex flex-col space-y-2 justify-end mt-auto">
+            {/* --- LAYOUT FIJO: NUEVA ESTRUCTURA (TODO A LA IZQUIERDA) --- */}
+            <div className="relative z-10 flex flex-row h-full w-full p-6 pt-6 pb-2">
               
-              {/* Widget Radio (Aparece encima de Clima si está activo) */}
-              {currentStation && (
-                <div className="w-full max-w-sm h-20">
-                  <div className="bg-black/60 backdrop-blur-md p-3 rounded-2xl border border-white/10 flex items-center justify-between w-full h-full">
-                    <div className="flex items-center space-x-4 min-w-0 flex-1">
-                      <div className="relative flex-shrink-0"><img src={currentStation.logo} alt={currentStation.name} className="w-14 h-14 rounded-xl object-cover bg-white/10 shadow-lg" />{radioPlaying && !radioError && !currentStation.forceExternal && <div className="absolute inset-0 flex items-center justify-center"><div className="w-2 h-2 bg-blue-500 rounded-full absolute top-0 right-0 m-1"></div></div>}</div>
-                      <div className="flex flex-col overflow-hidden">
-                        {radioError ? <span className="text-xs font-bold text-amber-400 flex items-center space-x-1 truncate"><AlertTriangle size={12} /> <span>REQUIERE ACCIÓN</span></span> : <span className="text-[10px] text-blue-400 font-bold tracking-wider uppercase flex items-center space-x-1">{radioPlaying ? (currentStation.forceExternal ? <><ExternalLink size={10} /> <span>REPRODUCIENDO FUERA</span></> : <><Signal size={10} /> <span>EN VIVO</span></>) : <span className="text-zinc-500">PAUSADO</span>}</span>}
-                        <span className="text-lg font-bold text-white leading-tight truncate">{currentStation.name}</span>
-                        {radioError && <a href={currentStation.url} target="_blank" rel="noopener noreferrer" className="text-xs text-amber-300 hover:underline flex items-center space-x-1 mt-1"><ExternalLink size={10} /> <span>Abrir Externamente</span></a>}
+              {/* COLUMNA IZQUIERDA (Reloj + Widgets apilados) */}
+              <div className="w-5/12 flex flex-col justify-between mb-0 h-full">
+                
+                {/* 1. Reloj (Arriba) */}
+                <div className="space-y-2">
+                  <div className="space-y-2 -mt-6">
+                    <h1 className="text-[8rem] font-bold tracking-tighter leading-none whitespace-nowrap text-white drop-shadow-2xl">{time.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })}</h1>
+                    <div className="ml-2">
+                      <p className="text-3xl font-light text-gray-200 capitalize drop-shadow-lg">{time.toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' })}</p>
+                      <p className="text-lg text-yellow-500/90 font-medium flex items-center space-x-2 mt-1 drop-shadow-md"><Calendar size={16} /> <span>Semana {getWeekNumber(time)}</span></p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* 2. Grupo de Widgets (Abajo, apilados: Radio -> Clima -> Pronóstico) */}
+                <div className="flex flex-col space-y-2 justify-end mt-auto">
+                  
+                  {/* Widget Radio (Aparece encima de Clima si está activo) */}
+                  {currentStation && (
+                    <div className="w-full max-w-sm h-20">
+                      <div className="bg-black/60 backdrop-blur-md p-3 rounded-2xl border border-white/10 flex items-center justify-between w-full h-full">
+                        <div className="flex items-center space-x-4 min-w-0 flex-1">
+                          <div className="relative flex-shrink-0"><img src={currentStation.logo} alt={currentStation.name} className="w-14 h-14 rounded-xl object-cover bg-white/10 shadow-lg" />{radioPlaying && !radioError && !currentStation.forceExternal && <div className="absolute inset-0 flex items-center justify-center"><div className="w-2 h-2 bg-blue-500 rounded-full absolute top-0 right-0 m-1"></div></div>}</div>
+                          <div className="flex flex-col overflow-hidden">
+                            {radioError ? <span className="text-xs font-bold text-amber-400 flex items-center space-x-1 truncate"><AlertTriangle size={12} /> <span>REQUIERE ACCIÓN</span></span> : <span className="text-[10px] text-blue-400 font-bold tracking-wider uppercase flex items-center space-x-1">{radioPlaying ? (currentStation.forceExternal ? <><ExternalLink size={10} /> <span>REPRODUCIENDO FUERA</span></> : <><Signal size={10} /> <span>EN VIVO</span></>) : <span className="text-zinc-500">PAUSADO</span>}</span>}
+                            <span className="text-lg font-bold text-white leading-tight truncate">{currentStation.name}</span>
+                            {radioError && <a href={currentStation.url} target="_blank" rel="noopener noreferrer" className="text-xs text-amber-300 hover:underline flex items-center space-x-1 mt-1"><ExternalLink size={10} /> <span>Abrir Externamente</span></a>}
+                          </div>
+                        </div>
+                        
+                        {/* Vúmetro entre texto y botones */}
+                        {vizLevels && (
+                          <div className="flex items-end gap-1 h-8 mx-4" aria-hidden="true">
+                            {vizLevels.map((level, idx) => (
+                              <div 
+                                key={idx} 
+                                className="w-1.5 bg-green-400 rounded-t transition-all duration-150 ease-out" 
+                                style={{ height: `${level}%` }} 
+                              />
+                            ))}
+                          </div>
+                        )}
+
+                        <div className="flex items-center space-x-2 pl-2">
+                          {!radioError && !currentStation.forceExternal && <button onClick={() => toggleRadio(currentStation)} className="p-3 bg-white/10 rounded-full text-white">{radioPlaying ? <Pause size={20} fill="currentColor" /> : <Play size={20} fill="currentColor" />}</button>}
+                          <button onClick={() => toggleRadio(null)} className="p-3 bg-red-900/30 text-red-400 rounded-full border border-red-500/20"><Power size={20} /></button>
+                        </div>
                       </div>
                     </div>
-                    
-                    {/* Vúmetro entre texto y botones */}
-                    {vizLevels && (
-                      <div className="flex items-end gap-1 h-8 mx-4" aria-hidden="true">
-                        {vizLevels.map((level, idx) => (
-                          <div 
-                            key={idx} 
-                            className="w-1.5 bg-green-400 rounded-t transition-all duration-150 ease-out" 
-                            style={{ height: `${level}%` }} 
-                          />
+                  )}
+
+                  {/* Widget Clima Actual (Encima de Pronóstico) */}
+                  <div className="bg-white/10 backdrop-blur-md p-4 rounded-3xl border border-white/10 shadow-xl w-full max-w-sm h-52 flex flex-col justify-center">
+                    {loading ? <div className="h-full flex items-center justify-center"><p>Cargando...</p></div> : error ? <div className="h-full flex items-center justify-center text-red-300"><p>{error}</p></div> : (
+                      <>
+                        <h3 className="text-[15px] font-bold uppercase text-gray-300 mb-2 border-b border-white/10 pb-2 flex-shrink-0">EL TIEMPO EN {locationName.toUpperCase()}</h3>
+                        <div className="flex items-center justify-between w-full flex-grow">
+                          <div className="flex flex-col justify-center">
+                            <div className="flex items-center space-x-4"><span className="text-5xl font-semibold tracking-tighter">{weather.current.temp}°</span><div className="flex flex-col space-y-1"><span className="flex items-center text-red-300 text-base font-bold"><ArrowUp size={16} className="mr-1"/>{weather.current.max}°</span><span className="flex items-center text-blue-300 text-base font-bold"><ArrowDown size={16} className="mr-1"/>{weather.current.min}°</span></div></div>
+                          </div>
+                          <div className="flex flex-col items-center justify-center px-2"><Gauge size={32} className="text-green-400 mb-1 opacity-80"/><span className="text-xl font-bold text-green-100">{weather.current.pressure} <span className="text-sm">hPa</span></span></div>
+                          <div className="flex flex-col items-center mr-2"><MainWeatherIcon code={weather.current.code} className="w-10 h-10 text-yellow-400 mb-2" /><span className="block text-xs text-gray-300 font-medium text-center mb-1">{weather.current.condition}</span></div>
+                        </div>
+                        <div className="flex space-x-4 mt-4 w-full">
+                          <div className="flex-1 flex items-center justify-center space-x-3 bg-black/20 p-3 rounded-2xl">
+                            <Droplets className="text-blue-400 w-8 h-8" />
+                            <div>
+                              <p className="text-xs text-gray-400 uppercase tracking-wider">Humedad</p>
+                              <p className="text-2xl font-bold">{weather.current.humidity}<span className="text-sm font-normal">%</span></p>
+                            </div>
+                          </div>
+                          <div className="flex-1 flex items-center justify-center space-x-3 bg-black/20 p-3 rounded-2xl">
+                            <Wind className="text-gray-400 w-8 h-8" />
+                            <div>
+                              <p className="text-xs text-gray-400 uppercase tracking-wider">Viento</p>
+                              <p className="text-2xl font-bold">{weather.current.wind} <span className="text-sm font-normal">km/h</span></p>
+                            </div>
+                          </div>
+                        </div>
+                      </>
+                    )}
+                  </div>
+
+                  {/* Widget Pronóstico (Abajo del todo) */}
+                  {!loading && weather && (
+                    <div className="bg-black/40 backdrop-blur-md p-3 rounded-3xl border border-white/5 shadow-2xl w-full max-w-md h-36 flex flex-col box-border">
+                      <h3 className="text-[15px] font-bold uppercase text-gray-300 mb-1 border-b border-white/10 pb-2 flex-shrink-0">PRONÓSTICO 7 DÍAS PARA {locationName.toUpperCase()}</h3>
+                      <div className="flex overflow-x-auto pb-2 scrollbar-hide justify-between space-x-4 flex-grow items-center">
+                        {weather.forecast.map((day, idx) => (
+                          <div key={idx} className="flex flex-col items-center space-y-1 min-w-[50px] flex-shrink-0"><span className="text-gray-300 capitalize text-xs font-medium">{day.day}</span><WeatherIcon type={day.icon} className="w-6 h-6 text-white" /><span className="text-lg font-bold">{day.temp}°</span></div>
                         ))}
                       </div>
-                    )}
-
-                    <div className="flex items-center space-x-2 pl-2">
-                      {!radioError && !currentStation.forceExternal && <button onClick={() => toggleRadio(currentStation)} className="p-3 bg-white/10 rounded-full text-white">{radioPlaying ? <Pause size={20} fill="currentColor" /> : <Play size={20} fill="currentColor" />}</button>}
-                      <button onClick={() => toggleRadio(null)} className="p-3 bg-red-900/30 text-red-400 rounded-full border border-red-500/20"><Power size={20} /></button>
                     </div>
-                  </div>
+                  )}
+
                 </div>
-              )}
-
-              {/* Widget Clima Actual (Encima de Pronóstico) */}
-              <div className="bg-white/10 backdrop-blur-md p-4 rounded-3xl border border-white/10 shadow-xl w-full max-w-sm h-52 flex flex-col justify-center">
-                {loading ? <div className="h-full flex items-center justify-center"><p>Cargando...</p></div> : error ? <div className="h-full flex items-center justify-center text-red-300"><p>{error}</p></div> : (
-                  <>
-                    <h3 className="text-[15px] font-bold uppercase text-gray-300 mb-2 border-b border-white/10 pb-2 flex-shrink-0">EL TIEMPO EN {locationName.toUpperCase()}</h3>
-                    <div className="flex items-center justify-between w-full flex-grow">
-                      <div className="flex flex-col justify-center">
-                        <div className="flex items-center space-x-4"><span className="text-5xl font-semibold tracking-tighter">{weather.current.temp}°</span><div className="flex flex-col space-y-1"><span className="flex items-center text-red-300 text-base font-bold"><ArrowUp size={16} className="mr-1"/>{weather.current.max}°</span><span className="flex items-center text-blue-300 text-base font-bold"><ArrowDown size={16} className="mr-1"/>{weather.current.min}°</span></div></div>
-                      </div>
-                      <div className="flex flex-col items-center justify-center px-2"><Gauge size={32} className="text-green-400 mb-1 opacity-80"/><span className="text-xl font-bold text-green-100">{weather.current.pressure} <span className="text-sm">hPa</span></span></div>
-                      <div className="flex flex-col items-center mr-2"><MainWeatherIcon code={weather.current.code} className="w-10 h-10 text-yellow-400 mb-2" /><span className="block text-xs text-gray-300 font-medium text-center mb-1">{weather.current.condition}</span></div>
-                    </div>
-                    <div className="flex space-x-4 mt-4 w-full">
-                      <div className="flex-1 flex items-center justify-center space-x-3 bg-black/20 p-3 rounded-2xl">
-                        <Droplets className="text-blue-400 w-8 h-8" />
-                        <div>
-                          <p className="text-xs text-gray-400 uppercase tracking-wider">Humedad</p>
-                          <p className="text-2xl font-bold">{weather.current.humidity}<span className="text-sm font-normal">%</span></p>
-                        </div>
-                      </div>
-                      <div className="flex-1 flex items-center justify-center space-x-3 bg-black/20 p-3 rounded-2xl">
-                        <Wind className="text-gray-400 w-8 h-8" />
-                        <div>
-                          <p className="text-xs text-gray-400 uppercase tracking-wider">Viento</p>
-                          <p className="text-2xl font-bold">{weather.current.wind} <span className="text-sm font-normal">km/h</span></p>
-                        </div>
-                      </div>
-                    </div>
-                  </>
-                )}
               </div>
 
-              {/* Widget Pronóstico (Abajo del todo) */}
-              {!loading && weather && (
-                <div className="bg-black/40 backdrop-blur-md p-3 rounded-3xl border border-white/5 shadow-2xl w-full max-w-md h-36 flex flex-col box-border">
-                  <h3 className="text-[15px] font-bold uppercase text-gray-300 mb-1 border-b border-white/10 pb-2 flex-shrink-0">PRONÓSTICO 7 DÍAS PARA {locationName.toUpperCase()}</h3>
-                  <div className="flex overflow-x-auto pb-2 scrollbar-hide justify-between space-x-4 flex-grow items-center">
-                    {weather.forecast.map((day, idx) => (
-                      <div key={idx} className="flex flex-col items-center space-y-1 min-w-[50px] flex-shrink-0"><span className="text-gray-300 capitalize text-xs font-medium">{day.day}</span><WeatherIcon type={day.icon} className="w-6 h-6 text-white" /><span className="text-lg font-bold">{day.temp}°</span></div>
-                    ))}
-                  </div>
-                </div>
-              )}
-
+              {/* COLUMNA DERECHA (Vacía para ver la foto) */}
+              <div className="w-7/12 h-full">
+                 {/* Espacio libre para la foto */}
+              </div>
             </div>
-          </div>
 
-          {/* COLUMNA DERECHA (Vacía para ver la foto) */}
-          <div className="w-7/12 h-full">
-             {/* Espacio libre para la foto */}
           </div>
-        </div>
-
       </div>
     </div>
   );
